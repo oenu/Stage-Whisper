@@ -2,7 +2,9 @@
 import { join } from 'path';
 
 // Python-Shell
-import { PythonShell } from 'python-shell';
+//import { PythonShell } from 'python-shell';
+
+const cp = require("child_process");
 
 // Dev Tools
 import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
@@ -112,26 +114,30 @@ ipcMain.handle('run-whisper', (event: IpcMainInvokeEvent, args: whisperArgs) => 
   // Format model name
   const model = args.language === 'english' ? `${args.model}.en` : args.model || 'base';
 
-  const options = {
-    scriptPath: join(__dirname, '../src/python'),
-    args: [
-      args.file,
-      `--model ${model}`,
-      args.language || 'en',
-      args.translate ? '--task translate' : '',
-      args.output_dir ? `--output_dir ${args.output_dir}` : ''
-    ]
-    // TODO: Add this option to the frontend to allow for automatic language detection
-    // args.detect_language
-  };
+  let cmdArgs = [
+    args.file,
+    `--model ${model}`,
+    args.language || 'en',
+    args.translate ? '--task translate' : '',
+    args.output_dir ? `--output_dir ${args.output_dir}` : ''
+  ]
+
+
+  // const options = {
+  //   scriptPath: join(__dirname, '../src/python'),
+  //   pythonPath: join(__dirname, '../python/bin/python3'),
+  //   // TODO: Add this option to the frontend to allow for automatic language detection
+  //   // args.detect_language
+  // };
 
   // eslint-disable-next-line no-console
-  console.log('Running python script with options: ', options);
-  PythonShell.run('whisper.py', options, (err, results) => {
+  //console.log('Running python script with options: ', options);
+  //PythonShell.run('whisper', options, (err, results) => {
+  cp.execFile('python/x86_64-apple-darwin/debug/install/python', cmdArgs, (err: any, stdout: any, stderr: any) => {
     if (err) throw err;
     // results is an array consisting of messages collected during execution
-    // eslint-disable-next-line no-console
-    console.log('results: %j', results);
-    event.sender.send('whisper-complete', results);
+    console.log('results: %j', stdout);
+    console.log('stderr: %j', stderr);
+    event.sender.send('whisper-complete', stdout);
   });
 });
