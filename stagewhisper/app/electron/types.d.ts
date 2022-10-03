@@ -4,7 +4,7 @@ import { WhisperArgs } from './whisperTypes';
 // Entry Config Object
 export type entryConfig = {
   uuid: string; // UUID of the entry
-  title: string; // Title of the entry
+  name: string; // Title of the entry
   description: string; // Description of the entry
   created: Date; // Date the entry was created
   inQueue: boolean; // If the entry is in the queue

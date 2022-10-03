@@ -124,6 +124,26 @@ export const strings = new LocalizedStrings(
           placeholder: 'Select a language',
           non_english_warning: 'Note: Languages other than english may have an increased error rate'
         },
+        about: {
+          title: 'About',
+          prompt: 'About this file',
+          tags: {
+            title: 'Tags',
+            prompt: 'Tags to associate with this file, comma separated',
+            placeholder: 'interview, 2021, pulitzer...'
+          },
+          description: {
+            title: 'Description',
+            prompt: 'Description of this file, what is it about?',
+            placeholder: 'The interview with the president of the moon'
+          },
+          name: {
+            title: 'Name',
+            prompt: 'Name of this file',
+            placeholder: 'Moon-ter-view'
+          }
+        },
+
         // The following are the labels for the models that can be used for transcription, each has a title and a description of the model.
         // These descriptions are used in the tooltip and inform the user of the model's accuracy and speed. This is not final and will be updated as we get more information on the models.
         models: {

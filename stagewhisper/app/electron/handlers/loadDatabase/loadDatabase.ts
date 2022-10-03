@@ -133,7 +133,7 @@ export default ipcMain.handle(
           const entry: entry = {
             path: join(dataPath, entryFolder.name),
             config: {
-              title: config.title,
+              name: config.name,
               description: config.description,
               inQueue: config.inQueue,
               queueWeight: config.queueWeight,

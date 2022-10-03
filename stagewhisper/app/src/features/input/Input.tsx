@@ -10,6 +10,7 @@ import Audio, { AudioType } from './components/audio/Audio';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import {
   resetInput,
+  selectAbout,
   selectAudio,
   selectLanguage,
   // selectModel,
@@ -22,12 +23,14 @@ import strings from '../../localization';
 import { WhisperArgs } from '../../../electron/whisperTypes';
 import { useNavigate } from 'react-router-dom';
 import { getLocalFiles } from '../entries/entrySlice';
+import About from './components/about/About';
 
 function Input() {
   // Redux
   const dispatch = useAppDispatch();
   const { audio } = useAppSelector(selectAudio);
   const { language } = useAppSelector(selectLanguage);
+  const { about } = useAppSelector(selectAbout);
   const navigate = useNavigate();
   // const { model } = useAppSelector(selectModel);
 
@@ -41,15 +44,15 @@ function Input() {
   const handleNewEntry = async ({
     audio,
     language,
-    title,
+    name,
     tags
   }: {
     audio: AudioType;
     language: WhisperArgs['language'];
-    title: string;
+    name: string;
     tags: string[];
   }) => {
-    if (audio.path && audio.name && language && title && tags) {
+    if (audio.path && audio.name && language && name && tags) {
       console.log('Input: All selections made');
       dispatch(setHighlightInvalid(false));
       await window.Main.newEntry({
@@ -60,7 +63,7 @@ function Input() {
           language: language
         },
         config: {
-          title: audio.name, // FIXME: #42 Get title from user
+          name: audio.name, // FIXME: #42 Get title from user
           description: 'Placeholder description', // FIXME:  Get description from user
           tags: ['Placeholder', 'tags'] // FIXME: #44 Get tags from user
         }
@@ -94,9 +97,10 @@ function Input() {
         <Title italic order={5}>
           {strings.input?.prompt}
         </Title>
-
+        <About />
         <Audio />
         <Language />
+
         {/* <Model /> */}
         {/* </SimpleGrid> */}
 
@@ -114,7 +118,7 @@ function Input() {
                   handleNewEntry({
                     language,
                     audio,
-                    title: 'placeholder title', // FIXME: #42 Create entry title input component
+                    name: about.name // FIXME: #42 Create entry title input component
                     tags: ['placeholder', 'tags'] // FIXME: #44 Create tag input component
                   });
                 } else {

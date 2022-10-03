@@ -33,7 +33,7 @@ export default ipcMain.handle(
         config: {
           uuid: uuidv4(),
           inQueue: false,
-          title: args.config.title,
+          name: args.config.name,
           created: new Date(),
           queueWeight: 0,
           tags: args.config.tags,

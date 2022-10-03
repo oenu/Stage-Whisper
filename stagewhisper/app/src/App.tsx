@@ -110,7 +110,7 @@ function RecentTranscriptions() {
             return (
               <NavLink
                 key={transcription.uuid}
-                label={<Text lineClamp={1}>{entry.config.title}</Text>}
+                label={<Text lineClamp={1}>{entry.config.name}</Text>}
                 component={Link}
                 to={`/entries`}
                 onClick={() => {

@@ -310,7 +310,7 @@ function TranscriptionCard({ entry }: { entry: entry }) {
     <Card withBorder>
       <Group>
         <Title order={2} lineClamp={2}>
-          {entry.config.title}
+          {entry.config.name}
         </Title>
       </Group>
 
