@@ -16,9 +16,10 @@ export interface DescriptionType {
 }
 
 function Description() {
+  // TODO: #45 Add Description component with fields for name, description, and tags
+  // #42, #44
   // Used to input the transcription name, description, tags and notes
   return <div>Description</div>;
 }
 
-// TODO: Add Description component with fields for name, description, and tags
 export default Description;

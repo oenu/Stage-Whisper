@@ -108,10 +108,10 @@ function RecentTranscriptions() {
                 component={Link}
                 to={`/entries`}
                 onClick={() => {
-                  dispatch(setActiveEntry(entry.uuid));
+                  dispatch(setActiveEntry(entry.config.uuid));
                   dispatch(setBurgerOpen(false));
                 }}
-                active={entry.uuid === activeEntry}
+                active={entry.config.uuid === activeEntry}
                 icon={
                   icon
                   // transcription.status === 'error' || transcription.status === 'unknown' ? ( // If transcription is error or unknown show error icon

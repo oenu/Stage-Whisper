@@ -10,7 +10,7 @@ import { getAudioDurationInSeconds } from 'get-audio-duration';
 export type newEntryArgs = {
   filePath: string;
   audio: Omit<entryAudioParams, 'path' | 'addedOn' | 'fileLength'>;
-  config: Omit<entryConfig, 'created' | 'inQueue' | 'queueWeight'>;
+  config: Omit<entryConfig, 'created' | 'inQueue' | 'queueWeight' | 'activeTranscription' | 'uuid'>;
 };
 
 export default ipcMain.handle(

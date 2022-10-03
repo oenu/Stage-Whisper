@@ -2,7 +2,7 @@ import { Button, Card, Stack, Title, Notification } from '@mantine/core';
 
 import React, { useState } from 'react';
 import { useAppDispatch } from '../redux/hooks';
-import { createDebugEntries } from '../features/entries/entrySlice';
+// import { createDebugEntries } from '../features/entries/entrySlice';
 import { v4 as uuidv4 } from 'uuid';
 
 function Debug() {

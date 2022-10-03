@@ -1,6 +1,6 @@
 import { WhisperArgs } from '../../../electron/whisperTypes';
 import { RootState } from '../../redux/store';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 // Transcription Slice
 // This holds the state of the transcriptions and will be updated by electron/node processes
 
@@ -12,7 +12,7 @@ import { entry, transcriptionStatus } from '../../../electron/types';
 
 export interface entryState {
   entries: entry[];
-  activeEntry: string | null
+  activeEntry: string | null;
   thunk_status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'not_found';
 }
 
@@ -27,7 +27,6 @@ const lorem = new LoremIpsum({
   }
 });
 
-
 const initialState: entryState = {
   entries: [],
   activeEntry: null,
@@ -36,15 +35,17 @@ const initialState: entryState = {
 };
 
 // Thunk for loading the transcriptions from the database
-export const getLocalFiles = createAsyncThunk('entries/getLocalFiles', async (): Promise<
-{entries?: entry[]; error?: string}> => {
-  const result = await window.Main.loadDatabase();
-  if (result) {
-    return  {entries: result.entries}
-  } else {
-    return {error: 'Error loading database'}
+export const getLocalFiles = createAsyncThunk(
+  'entries/getLocalFiles',
+  async (): Promise<{ entries?: entry[]; error?: string }> => {
+    const result = await window.Main.loadDatabase();
+    if (result) {
+      return { entries: result.entries };
+    } else {
+      return { error: 'Error loading database' };
+    }
   }
-});
+);
 
 export const entrySlice = createSlice({
   name: 'entries',
@@ -57,10 +58,11 @@ export const entrySlice = createSlice({
 
     addEntry: (state, action) => {
       // This action is called when a transcription is added
-      state.entries.push(action.payload); 
+      state.entries.push(action.payload);
     },
 
-    updateEntry: (state, action) => { // FIXME: Convert to use electron
+    updateEntry: (state, action) => {
+      // FIXME: Convert to use electron
       // This action is called when a transcription is updated
       const index = state.entries.findIndex((entry) => entry.uuid === action.payload.id);
       if (index !== -1) {
@@ -68,7 +70,8 @@ export const entrySlice = createSlice({
       }
     },
 
-    removeEntry: (state, action) => { // FIXME: Convert to use electron to remove from database
+    removeEntry: (state, action) => {
+      // FIXME: Convert to use electron to remove from database
       // This action is called when a transcription is removed
       const index = state.entries.findIndex((entry) => entry.uuid === action.payload);
       if (index !== -1) {
@@ -180,8 +183,10 @@ export const entrySlice = createSlice({
       state.thunk_status = 'loading';
     });
     builder.addCase(getLocalFiles.fulfilled, (state, action) => {
-      if 
-
+      state.thunk_status = 'succeeded';
+      if (action.payload.entries) {
+        state.entries = action.payload.entries;
+      }
     });
     builder.addCase(getLocalFiles.rejected, (state) => {
       state.thunk_status = 'idle';
@@ -189,14 +194,7 @@ export const entrySlice = createSlice({
   }
 });
 
-export const {
-  addEntry,
-  updateEntry,
-  removeEntry,
-  test,
-setActiveEntry
-
-} = entrySlice.actions;
+export const { addEntry, updateEntry, removeEntry, test, setActiveEntry } = entrySlice.actions;
 
 // Export Transcription States
 export const selectEntries = (state: RootState) => state.entries.entries;

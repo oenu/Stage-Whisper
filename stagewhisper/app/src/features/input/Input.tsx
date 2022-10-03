@@ -59,8 +59,9 @@ function Input() {
           language: language
         },
         config: {
-          title: 'Placeholder title', // FIXME: Get title from user
-          tags: ['Placeholder', 'tags'] // FIXME: Get tags from user
+          title: 'Placeholder title', // FIXME: #42 Get title from user
+          description: 'Placeholder description', // FIXME:  Get description from user
+          tags: ['Placeholder', 'tags'] // FIXME: #44 Get tags from user
         }
       })
         .then((result) => {
