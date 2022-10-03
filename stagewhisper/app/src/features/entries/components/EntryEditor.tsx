@@ -5,7 +5,7 @@ import { entry } from '../../../../electron/types';
 // import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 
 // This is a component that will be used to display the transcription editor when an entry is selected
-function TranscriptionEditor({ active: entry }: { active: entry }) {
+function EntryEditor({ active: entry }: { active: entry }) {
   // Get the dispatch function
 
   // Page with a card containing the transcription metadata
@@ -41,4 +41,4 @@ function TranscriptionEditor({ active: entry }: { active: entry }) {
     );
   }
 }
-export default TranscriptionEditor;
+export default EntryEditor;

@@ -17,7 +17,7 @@ import {
   Title,
   useMantineTheme
 } from '@mantine/core';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import {
@@ -46,7 +46,13 @@ import { useAppDispatch, useAppSelector } from './redux/hooks';
 
 import { selectBurgerOpen, selectDebugMenu, setBurgerOpen, toggleDebugMenu } from './appSlice';
 import { selectDarkMode, selectDisplayLanguage, toggleDarkMode } from './features/settings/settingsSlice';
-import { selectActiveEntry, selectNumberOfEntries, selectEntries, setActiveEntry } from './features/entries/entrySlice';
+import {
+  selectActiveEntry,
+  selectNumberOfEntries,
+  selectEntries,
+  setActiveEntry,
+  getLocalFiles
+} from './features/entries/entrySlice';
 import Debug from './debug/Debug';
 
 // Recent Transcription Constructor
@@ -149,6 +155,10 @@ function App() {
   strings.setLanguage(displayLanguage || 'en'); // FIXME: This needs country codes
 
   const location = useLocation();
+
+  useEffect(() => {
+    dispatch(getLocalFiles());
+  }, []);
 
   return (
     <MantineProvider theme={{ colorScheme: darkMode ? 'dark' : 'light' }} withGlobalStyles withNormalizeCSS>

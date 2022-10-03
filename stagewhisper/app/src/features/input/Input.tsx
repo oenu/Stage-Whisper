@@ -74,7 +74,7 @@ function Input() {
             dispatch(resetInput());
             console.log('Getting local files');
             dispatch(getLocalFiles());
-            navigate('/transcriptions');
+            navigate('/entries');
           }
         })
         .catch((error) => {

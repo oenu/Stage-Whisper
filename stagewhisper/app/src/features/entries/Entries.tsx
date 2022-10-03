@@ -9,7 +9,7 @@ import EntryCard from './components/EntryCard';
 import { selectActiveEntry, selectEntries } from './entrySlice';
 
 // Localization
-import TranscriptionEditor from './components/TranscriptionEditor';
+import EntryEditor from './components/EntryEditor';
 
 // Component for displaying entry progress / results
 function Entries() {
@@ -20,7 +20,7 @@ function Entries() {
   const activeId = useAppSelector(selectActiveEntry);
 
   const transcriptionCards = entries.map((entry) => {
-    return <EntryCard key={entry.uuid} entry={entry} />;
+    return <EntryCard key={entry.config.uuid} entry={entry} />;
   });
 
   console.log(activeId);
@@ -31,7 +31,7 @@ function Entries() {
       </Stack>
     );
   } else {
-    return <TranscriptionEditor active={entries.filter((entry) => entry.uuid === activeId)[0]} />;
+    return <EntryEditor active={entries.filter((entry) => entry.config.uuid === activeId)[0]} />;
   }
 }
 
