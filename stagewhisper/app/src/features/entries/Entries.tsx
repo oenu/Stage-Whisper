@@ -5,22 +5,22 @@ import React from 'react';
 import { useAppSelector } from '../../redux/hooks';
 
 // Components
-import TranscriptionCard from './components/EntryCard';
-import { selectActiveTranscription, selectTranscriptions } from './entrySlice';
+import EntryCard from './components/EntryCard';
+import { selectActiveEntry, selectEntries } from './entrySlice';
 
 // Localization
 import TranscriptionEditor from './components/TranscriptionEditor';
 
-// Component for displaying transcription progress / results
-function Transcriptions() {
-  // Get All Transcriptions
-  const transcriptions = useAppSelector(selectTranscriptions);
+// Component for displaying entry progress / results
+function Entries() {
+  // Get All Entries
+  const entries = useAppSelector(selectEntries);
 
   // Get Active Transcription (if it exists)
-  const activeId = useAppSelector(selectActiveTranscription);
+  const activeId = useAppSelector(selectActiveEntry);
 
-  const transcriptionCards = transcriptions.map((transcription) => {
-    return <TranscriptionCard key={transcription.id} transcription={transcription} />;
+  const transcriptionCards = entries.map((entry) => {
+    return <EntryCard key={entry.uuid} entry={entry} />;
   });
 
   console.log(activeId);
@@ -31,8 +31,8 @@ function Transcriptions() {
       </Stack>
     );
   } else {
-    return <TranscriptionEditor active={transcriptions.filter((transcription) => transcription.id === activeId)[0]} />;
+    return <TranscriptionEditor active={entries.filter((entry) => entry.uuid === activeId)[0]} />;
   }
 }
 
-export default Transcriptions;
+export default Entries;

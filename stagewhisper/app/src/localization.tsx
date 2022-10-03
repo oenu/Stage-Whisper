@@ -157,14 +157,14 @@ export const strings = new LocalizedStrings(
         }
       },
       // Text for the transcriptions page which shows the user a list of all their transcriptions
-      transcriptions: {
-        title: 'Transcriptions', // Title of the page
-        recent_transcriptions: 'Recent Transcriptions', // Title of the recent transcriptions section
+      entries: {
+        title: 'Entries', // Title of the page
+        recent_transcriptions: 'Recent entries', // Title of the recent entries section
         buttons: {
           re_transcribe: 'Re-Transcribe',
           add_to_queue: 'Add to Queue'
         },
-        // Text for the table that shows the user a list of all their transcriptions and their status
+        // Text for the table that shows the user a list of all their entries and their status
         card: {
           // Audio
           audio_section_title: 'Audio File', // Label for the audio file card
@@ -179,7 +179,8 @@ export const strings = new LocalizedStrings(
           completed_on: 'Completed', // What time the transcription was completed
           never_completed: 'Never', // If the transcription has never been completed
           model_used: 'Model', // Which model was used to transcribe the file
-          transcript_length: 'Transcript Length' // How long the transcript is in words
+          transcript_length: 'Transcript Length', // How long the transcript is in words
+          no_transcription: 'No transcription' // If there is no transcription for the file
         }
       },
       // Text for the dashboard home page

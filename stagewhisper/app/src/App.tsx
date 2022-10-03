@@ -46,89 +46,86 @@ import { useAppDispatch, useAppSelector } from './redux/hooks';
 
 import { selectBurgerOpen, selectDebugMenu, setBurgerOpen, toggleDebugMenu } from './appSlice';
 import { selectDarkMode, selectDisplayLanguage, toggleDarkMode } from './features/settings/settingsSlice';
-import {
-  selectActiveTranscription,
-  selectNumberOfTranscriptions,
-  selectTranscriptions,
-  setActiveEntry
-} from './features/entries/entrySlice';
+import { selectActiveEntry, selectNumberOfEntries, selectEntries, setActiveEntry } from './features/entries/entrySlice';
 import Debug from './debug/Debug';
 
 // Recent Transcription Constructor
 function RecentTranscriptions() {
-  const transcriptions = useAppSelector(selectTranscriptions);
-  const activeTranscription = useAppSelector(selectActiveTranscription);
+  const entries = useAppSelector(selectEntries);
+  const activeEntry = useAppSelector(selectActiveEntry);
   const dispatch = useAppDispatch();
 
-  if (!transcriptions.length) {
+  if (!entries.length) {
     return <></>;
   } else {
     return (
       <>
         <Divider mt={'sm'} />
-        {/* <Title order={6}>{strings.transcriptions?.recent_transcriptions}</Title> */}
+        {/* <Title order={6}>{strings.entries?.recent_transcriptions}</Title> */}
 
-        {transcriptions.map((transcription) => {
+        {entries.map((entry) => {
           let icon: JSX.Element;
 
-          switch (transcription.status) {
-            case 'idle' || 'paused':
-              icon = <IconPlayerPause />;
-              break;
-            case 'processing':
-              icon = <Loader size={'xs'} variant="oval" />;
-              break;
-            case 'error':
-              icon = <IconFileAlert />;
-              break;
-            case 'complete':
-              icon = <IconFileCheck />;
-              break;
-            case 'queued':
-              icon = <IconCaretRight />;
-              break;
-            case 'deleted':
-              icon = <IconTrash />;
-              break;
-            case 'unknown':
-              icon = <IconQuestionMark />;
-              break;
-            case 'stalled':
-              icon = <IconRefreshAlert />;
-              break;
-            case 'cancelled':
-              icon = <IconFileAlert />;
-              break;
+          return entry.transcriptions.map((transcription) => {
+            switch (transcription.status) {
+              case 'idle' || 'paused':
+                icon = <IconPlayerPause />;
+                break;
+              case 'processing':
+                icon = <Loader size={'xs'} variant="oval" />;
+                break;
+              case 'error':
+                icon = <IconFileAlert />;
+                break;
+              case 'complete':
+                icon = <IconFileCheck />;
+                break;
+              case 'queued':
+                icon = <IconCaretRight />;
+                break;
+              case 'deleted':
+                icon = <IconTrash />;
+                break;
+              case 'unknown':
+                icon = <IconQuestionMark />;
+                break;
+              case 'stalled':
+                icon = <IconRefreshAlert />;
+                break;
+              case 'cancelled':
+                icon = <IconFileAlert />;
+                break;
 
-            default:
-              icon = <IconAlertTriangle />;
-              break;
-          }
+              default:
+                icon = <IconAlertTriangle />;
+                break;
+            }
 
-          return (
-            <NavLink
-              key={transcription.id}
-              label={<Text lineClamp={1}>{transcription.audioName}</Text>}
-              component={Link}
-              to={`/transcriptions`}
-              onClick={() => {
-                dispatch(setActiveEntry(transcription.id));
-                dispatch(setBurgerOpen(false));
-              }}
-              active={transcription.id === activeTranscription}
-              icon={
-                icon
-                // transcription.status === 'error' || transcription.status === 'unknown' ? ( // If transcription is error or unknown show error icon
-                //   <IconBugOff />
-                // ) : transcription.status === '' ? ( // If transcription is in progress show loading icon
-                //   <Loader size={'xs'} variant="oval" />
-                // ) : (
-                //   // Else show nothing
-                //   <></>
-                // )
-              }
-            />
-          );
+            return (
+              <NavLink
+                key={transcription.uuid}
+                label={<Text lineClamp={1}>{entry.config.title}</Text>}
+                component={Link}
+                to={`/entries`}
+                onClick={() => {
+                  dispatch(setActiveEntry(entry.uuid));
+                  dispatch(setBurgerOpen(false));
+                }}
+                active={entry.uuid === activeEntry}
+                icon={
+                  icon
+                  // transcription.status === 'error' || transcription.status === 'unknown' ? ( // If transcription is error or unknown show error icon
+                  //   <IconBugOff />
+                  // ) : transcription.status === '' ? ( // If transcription is in progress show loading icon
+                  //   <Loader size={'xs'} variant="oval" />
+                  // ) : (
+                  //   // Else show nothing
+                  //   <></>
+                  // )
+                }
+              />
+            );
+          });
         })}
       </>
     );
@@ -141,15 +138,15 @@ function App() {
   const dispatch = useAppDispatch();
   const darkMode = useAppSelector(selectDarkMode);
   const displayLanguage = useAppSelector(selectDisplayLanguage);
-  const activeTranscription = useAppSelector(selectActiveTranscription);
+  const activeEntry = useAppSelector(selectActiveEntry);
   const burgerOpen = useAppSelector(selectBurgerOpen);
-  const numberOfTranscriptions = useAppSelector(selectNumberOfTranscriptions);
+  const numberOfTranscriptions = useAppSelector(selectNumberOfEntries);
 
   // Theming
   const theme = useMantineTheme();
 
   // Monitor the current language and update when it changes
-  strings.setLanguage(displayLanguage);
+  strings.setLanguage(displayLanguage || 'en'); // FIXME: This needs country codes
 
   const location = useLocation();
 
@@ -185,13 +182,13 @@ function App() {
                 active={location.pathname === '/interview'}
               />
               <NavLink
-                label={<Text>{strings.transcriptions?.title} </Text>}
+                label={<Text>{strings.entries?.title} </Text>}
                 component={Link}
-                to="/transcriptions"
+                to="/entries"
                 icon={<IconFileDescription size={18} />}
                 onClick={() => dispatch(setActiveEntry(null))}
                 disabled={numberOfTranscriptions === 0}
-                active={location.pathname === '/transcriptions' && activeTranscription === null}
+                active={location.pathname === '/entries' && activeEntry === null}
               />
             </Navbar.Section>
 
