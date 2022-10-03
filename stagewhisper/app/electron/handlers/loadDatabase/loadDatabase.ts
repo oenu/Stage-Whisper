@@ -4,7 +4,7 @@ import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { join } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import { app } from 'electron';
-import { entry, entryTranscription } from './types';
+import { entry, entryTranscription } from '../../types';
 
 // Paths
 
@@ -90,10 +90,10 @@ export default ipcMain.handle(
           }
 
           // Get the config file
-          const config = JSON.parse(readFileSync(configPath, 'utf8'));
+          const config = JSON.parse(readFileSync(configPath, 'utf8')) as entry['config'];
 
           // Get the audio file
-          const audio = JSON.parse(readFileSync(join(audioPath, 'parameters.json'), 'utf8'));
+          const audio = JSON.parse(readFileSync(join(audioPath, 'parameters.json'), 'utf8')) as entry['audio'];
 
           // Get the transcriptions
           const transcriptions: entryTranscription[] = [];
@@ -118,7 +118,12 @@ export default ipcMain.handle(
                 language: parameters.language,
                 model: parameters.model,
                 path: join(transcriptionsPath, transcriptionFolder.name),
-                vtt: transcript
+                vtt: transcript,
+                status: parameters.status,
+                progress: parameters.progress,
+                translated: parameters.translated,
+                completedOn: parameters.completedOn,
+                error: parameters.error
               };
 
               transcriptions.push(transcription);
@@ -126,18 +131,21 @@ export default ipcMain.handle(
 
           // Add the entry to the entries array
           const entry: entry = {
-            uuid: config.uuid,
             path: join(dataPath, entryFolder.name),
             config: {
               title: config.title,
+              description: config.description,
               inQueue: config.inQueue,
               queueWeight: config.queueWeight,
               created: config.created,
-              tags: config.tags
+              tags: config.tags,
+              activeTranscription: config.activeTranscription,
+              uuid: config.uuid
             },
             audio: {
               name: audio.name,
               addedOn: audio.addedOn,
+              fileLength: audio.fileLength,
               language: audio.language,
               type: audio.type,
               path: join(audioPath, audio.type)

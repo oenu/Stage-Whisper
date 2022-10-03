@@ -1,7 +1,7 @@
 import { newEntryArgs } from './handlers/newEntry/newEntry';
 import { WhisperArgs } from './whisperTypes';
 import { ipcRenderer, contextBridge } from 'electron';
-import { entry } from './handlers/loadDatabase/types';
+import { entry } from './types';
 
 // import { languages } from '../src/components/language/languages';
 

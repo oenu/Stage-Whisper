@@ -8,11 +8,11 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 // import { WhisperLanguages } from '../input/components/language/languages';
 import { NodeList } from 'subtitle';
 import { LoremIpsum } from 'lorem-ipsum';
-import { entry, transcriptionStatus } from '../../../electron/handlers/loadDatabase/types';
+import { entry, transcriptionStatus } from '../../../electron/types';
 
 export interface entryState {
   entries: entry[];
-  activeEntry: number | null;
+  activeEntry: string | null
   thunk_status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'not_found';
 }
 
@@ -30,7 +30,7 @@ const lorem = new LoremIpsum({
 
 const initialState: entryState = {
   entries: [],
-  activeEntry: 0,
+  activeEntry: null,
   // Thunk State for accessing local files via electron
   thunk_status: 'idle'
 };
@@ -62,7 +62,7 @@ export const entrySlice = createSlice({
 
     updateEntry: (state, action) => { // FIXME: Convert to use electron
       // This action is called when a transcription is updated
-      const index = state.entries.findIndex((entry) => entry.id === action.payload.id);
+      const index = state.entries.findIndex((entry) => entry.uuid === action.payload.id);
       if (index !== -1) {
         state.entries[index] = action.payload;
       }
@@ -70,7 +70,7 @@ export const entrySlice = createSlice({
 
     removeEntry: (state, action) => { // FIXME: Convert to use electron to remove from database
       // This action is called when a transcription is removed
-      const index = state.entries.findIndex((entry) => entry.id === action.payload);
+      const index = state.entries.findIndex((entry) => entry.uuid === action.payload);
       if (index !== -1) {
         state.entries.splice(index, 1);
       }
@@ -199,9 +199,9 @@ setActiveEntry
 } = entrySlice.actions;
 
 // Export Transcription States
-export const selectTranscriptions = (state: RootState) => state.entries.entries;
-export const selectActiveTranscription = (state: RootState) => state.transcriptions.activeEntry;
-export const selectNumberOfTranscriptions = (state: RootState) => state.transcriptions.entries.length;
+export const selectEntries = (state: RootState) => state.entries.entries;
+export const selectActiveEntry = (state: RootState) => state.entries.activeEntry;
+export const selectNumberOfEntries = (state: RootState) => state.entries.entries.length;
 
 // Export the reducer
 export default entrySlice.reducer;

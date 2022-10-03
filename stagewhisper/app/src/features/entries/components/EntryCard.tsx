@@ -16,14 +16,14 @@ import React, { useState } from 'react';
 
 // Redux
 
-import { entry, transcriptionStatus } from '../../../../electron/handlers/loadDatabase/types';
+import { entry, transcriptionStatus } from '../../../../electron/types';
 
 // Localization
 import { useDispatch } from 'react-redux';
 import strings from '../../../localization';
 
 //#region Component Helpers
-const progressIndicator = (entry: entry['transcriptions'][0]) => {
+const progressIndicator = (active_transcript: entry['transcriptions'][0]) => {
   // Import localization strings
   const labels = strings.util.status;
 
@@ -115,12 +115,12 @@ const progressIndicator = (entry: entry['transcriptions'][0]) => {
     }
   };
 
-  const state = states[entry.transcriptionStatus];
+  const state = states[active_transcript.status];
 
   return (
     <Progress
       color={state.color}
-      value={state.showFilled ? 100 : entry.progress}
+      value={state.showFilled ? 100 : active_transcript.progress}
       animate={state.animated}
       striped={state.striped}
       label={state.label}
@@ -143,12 +143,13 @@ type buttonTypes =
   | 'play' // Play the entry original audio
   | 'stop'; // Stop the entry original audio
 
-const buttonConstructor = (buttonType: buttonTypes, buttonId: number) => {
+const buttonConstructor = (buttonType: buttonTypes, buttonId: string) => {
   const dispatch = useDispatch();
 
   const buttonStrings = strings.util.buttons;
 
   const buttons: {
+    // TODO: None of these buttons do anything as I need to build out the redux actions and decide on a naming convention
     [key in buttonTypes]: {
       dispatchAction: string;
       label: string;
@@ -157,79 +158,79 @@ const buttonConstructor = (buttonType: buttonTypes, buttonId: number) => {
     };
   } = {
     edit: {
-      dispatchAction: 'transcriptions/editTranscription',
+      dispatchAction: 'entries/editTranscription',
       label: buttonStrings?.edit || 'Edit',
       color: 'red',
       style: 'default'
     },
     delete: {
-      dispatchAction: 'transcriptions/deleteTranscription',
+      dispatchAction: 'entries/deleteTranscription',
       label: buttonStrings?.delete || 'Delete',
       color: 'red',
       style: 'default'
     },
     cancel: {
-      dispatchAction: 'transcriptions/cancelTranscription',
+      dispatchAction: 'entries/cancelTranscription',
       label: buttonStrings?.cancel || 'Cancel',
       color: 'red',
       style: 'default'
     },
     pause: {
-      dispatchAction: 'transcriptions/pauseTranscription',
+      dispatchAction: 'entries/pauseTranscription',
       label: buttonStrings?.pause || 'Pause',
       color: 'red',
       style: 'default'
     },
     resume: {
-      dispatchAction: 'transcriptions/resumeTranscription',
+      dispatchAction: 'entries/resumeTranscription',
       label: buttonStrings?.resume || 'Resume',
       color: 'red',
       style: 'default'
     },
     download: {
-      dispatchAction: 'transcriptions/downloadTranscription',
+      dispatchAction: 'entries/downloadTranscription',
       label: buttonStrings?.download || 'Download',
       color: 'red',
       style: 'default'
     },
     retry: {
-      dispatchAction: 'transcriptions/retryTranscription',
+      dispatchAction: 'entries/retryTranscription',
       label: buttonStrings?.retry || 'Retry',
       color: 'red',
       style: 'default'
     },
     restore: {
-      dispatchAction: 'transcriptions/restoreTranscription',
+      dispatchAction: 'entries/restoreTranscription',
       label: buttonStrings?.restore || 'Restore',
       color: 'red',
       style: 'default'
     },
     queue: {
-      dispatchAction: 'transcriptions/queueTranscription',
+      dispatchAction: 'entries/queueTranscription',
       label: buttonStrings?.queue || 'Queue',
       color: 'red',
       style: 'default'
     },
     open: {
-      dispatchAction: 'transcriptions/openTranscription',
+      dispatchAction: 'entries/openTranscription',
       label: buttonStrings?.open || 'Open',
       color: 'red',
       style: 'default'
     },
     close: {
-      dispatchAction: 'transcriptions/closeTranscription',
+      dispatchAction: 'entries/closeTranscription',
       label: buttonStrings?.close || 'Close',
       color: 'red',
       style: 'default'
     },
     play: {
-      dispatchAction: 'transcriptions/playTranscription',
+      dispatchAction: 'entries/playTranscription',
       label: buttonStrings?.play || 'Play',
       color: 'red',
       style: 'default'
     },
     stop: {
-      dispatchAction: 'transcriptions/stopTranscription',
+      dispatchAction: 'entries/stopTranscription',
       label: buttonStrings?.stop || 'Stop',
       color: 'red',
       style: 'default'
@@ -245,17 +246,18 @@ const buttonConstructor = (buttonType: buttonTypes, buttonId: number) => {
       size="sm"
       color={buttons[buttonType].color}
       variant={buttons[buttonType].style}
+      disabled // TODO: Add logic to these buttons, then remove this
     >
       {buttons[buttonType].label}
     </Button>
   );
 };
 
-const buttonBlock = (transcript: entry) => {
+const buttonBlock = (active_transcript: entry['transcriptions'][0]) => {
   // Create a group of buttons to display based on the current state of the entry
   const buttonList: buttonTypes[] = [];
 
-  switch (transcript.status) {
+  switch (active_transcript.status) {
     case 'idle':
       buttonList.push('edit', 'delete', 'queue');
       break;
@@ -290,7 +292,9 @@ const buttonBlock = (transcript: entry) => {
 
   // Return a list of buttons
   return (
-    <Group position={'left'}>{buttonList.map((buttonType) => buttonConstructor(buttonType, transcript.id))}</Group>
+    <Group position={'left'}>
+      {buttonList.map((buttonType) => buttonConstructor(buttonType, active_transcript.uuid))}
+    </Group>
   );
 };
 
@@ -299,17 +303,19 @@ const buttonBlock = (transcript: entry) => {
 function TranscriptionCard({ entry }: { entry: entry }) {
   // Local state for the entry card - used to show/hide the file/entry details
   const [expanded, setExpanded] = useState<string[]>([]);
-
+  const activeTranscription = entry.transcriptions.find(
+    (transcription) => transcription.uuid === entry.config.activeTranscription // TODO: Implement a way to view all transcriptions not just active
+  );
   return (
     <Card withBorder>
       <Group>
         <Title order={2} lineClamp={2}>
-          {entry.title}
+          {entry.config.title}
         </Title>
       </Group>
 
       <Title italic order={6} lineClamp={1}>
-        {entry.description}
+        {entry.config.description}
       </Title>
       <Divider mt="xs" mb="xs" />
 
@@ -321,41 +327,42 @@ function TranscriptionCard({ entry }: { entry: entry }) {
               {/* StageWhisper information */}
               <Accordion.Item value="entry">
                 <Accordion.Control>
-                  <Title order={3}>{strings.transcriptions?.card.transcription_section_title}</Title>
+                  <Title order={3}>{strings.entries?.card.transcription_section_title}</Title>
                 </Accordion.Control>
                 <Accordion.Panel>
                   {/* Transcription Completed Date  */}
                   <Text weight={700}>
-                    {strings.transcriptions?.card.completed_on}:{' '}
-                    {entry.status === 'complete' ? (
+                    {strings.entries?.card.completed_on}:{' '}
+                    {activeTranscription?.status === 'complete' ? (
                       <Text weight={500} span>
-                        {entry.created}
+                        {activeTranscription.completedOn}
                       </Text>
                     ) : (
                       <Text weight={500} span transform="capitalize">
-                        {strings.transcriptions?.card.never_completed}
+                        {strings.entries?.card.never_completed}
                       </Text>
                     )}
                   </Text>
                   {/* Transcription Model Used  */}
                   <Text weight={700}>
-                    {strings.transcriptions?.card.model_used}:{' '}
+                    {strings.entries?.card.model_used}:{' '}
                     <Text weight={500} transform="capitalize" span>
-                      {entry.model}
+                      {activeTranscription?.model}
                     </Text>
                   </Text>
                   {/* Transcription File Length */}
                   <Text weight={700}>
                     Model:{' '}
                     <Text weight={500} transform="capitalize" span>
-                      {entry.model}
+                      {/* {activeTranscription.} */}
+                      Disabled
                     </Text>
                   </Text>
                   {/* Transcription File Location  */}
                   <Text weight={700}>
-                    {strings.transcriptions?.card.output_directory}:{' '}
+                    {strings.entries?.card.output_directory}:{' '}
                     <Text weight={500} transform="capitalize" italic span>
-                      {entry.directory}
+                      Disabled
                     </Text>
                   </Text>
                 </Accordion.Panel>
@@ -364,41 +371,41 @@ function TranscriptionCard({ entry }: { entry: entry }) {
               <Accordion.Item value="audio">
                 {/* Audio File Information */}
                 <Accordion.Control>
-                  <Title order={3}>{strings.transcriptions?.card.audio_section_title}</Title>
+                  <Title order={3}>{strings.entries?.card.audio_section_title}</Title>
                 </Accordion.Control>
                 <Accordion.Panel>
                   {/* Audio File Name  */}
                   <Text weight={700}>
-                    {strings.transcriptions?.card.file_name}:{' '}
+                    {strings.entries?.card.file_name}:{' '}
                     <Text weight={500} transform="capitalize" span>
-                      {entry.audioName}
+                      {entry.audio.name}
                     </Text>
                   </Text>
                   {/* Audio File Type  */}
                   <Text weight={700}>
-                    {strings.transcriptions?.card.file_type}:{' '}
+                    {strings.entries?.card.file_type}:{' '}
                     <Text weight={500} transform="capitalize" span>
-                      {entry.audioFormat}
+                      {entry.audio.type}
                     </Text>
                   </Text>
                   {/* Audio File Size  */}
                   <Text weight={700}>
-                    {strings.transcriptions?.card.file_length}:{' '}
+                    {strings.entries?.card.file_length}:{' '}
                     <Text weight={500} transform="capitalize" span>
-                      {entry.length
-                        ? entry.length < 60
-                          ? `${entry.length} ${strings.util.time?.seconds}`
-                          : `${Math.floor(entry.length / 60)} ${strings.util.time?.minutes} ${entry.length % 60} ${
-                              strings.util.time?.seconds
-                            }`
+                      {entry.audio.fileLength
+                        ? entry.audio.fileLength < 60
+                          ? `${entry.audio.fileLength} ${strings.util.time?.seconds}`
+                          : `${Math.floor(entry.audio.fileLength / 60)} ${strings.util.time?.minutes} ${
+                              entry.audio.fileLength % 60
+                            } ${strings.util.time?.seconds}`
                         : strings.util.status?.unknown}
                     </Text>
                   </Text>
                   {/* Audio File Language  */}
                   <Text weight={700}>
-                    {strings.transcriptions?.card.file_language}:{' '}
+                    {strings.entries?.card.file_language}:{' '}
                     <Text weight={500} transform="capitalize" span>
-                      {strings.getString(`languages.${entry.language}`) || entry.language}
+                      {strings.getString(`languages.${entry.audio.language}`) || entry.audio.language}
                     </Text>
                   </Text>
                 </Accordion.Panel>
@@ -409,14 +416,19 @@ function TranscriptionCard({ entry }: { entry: entry }) {
         <Grid.Col md={6} sm={12}>
           {/* Column containing a preview of the entry */}
           <Text italic color={'dimmed'} lineClamp={15}>
-            {entry.transcriptText}
+            {activeTranscription?.vtt}
+            {/* TODO: Add a file preview generated from VTT */}
           </Text>
         </Grid.Col>
       </Grid>
       <Divider mt="xs" mb="xs" />
-      {buttonBlock(entry)}
+
+      {activeTranscription && buttonBlock(activeTranscription)}
+      {activeTranscription && progressIndicator(activeTranscription)}
+
+      <Text weight={700}>{strings.entries?.card.no_transcription}</Text>
+
       <Divider mt="xs" mb="xs" />
-      {progressIndicator(entry)}
     </Card>
   );
 }
