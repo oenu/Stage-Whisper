@@ -64,7 +64,7 @@ export const entrySlice = createSlice({
     updateEntry: (state, action) => {
       // FIXME: Convert to use electron
       // This action is called when a transcription is updated
-      const index = state.entries.findIndex((entry) => entry.uuid === action.payload.id);
+      const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload.id);
       if (index !== -1) {
         state.entries[index] = action.payload;
       }
@@ -73,7 +73,7 @@ export const entrySlice = createSlice({
     removeEntry: (state, action) => {
       // FIXME: Convert to use electron to remove from database
       // This action is called when a transcription is removed
-      const index = state.entries.findIndex((entry) => entry.uuid === action.payload);
+      const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload);
       if (index !== -1) {
         state.entries.splice(index, 1);
       }
