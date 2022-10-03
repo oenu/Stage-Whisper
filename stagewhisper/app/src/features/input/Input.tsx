@@ -21,6 +21,7 @@ import {
 import strings from '../../localization';
 import { WhisperArgs } from '../../../electron/whisperTypes';
 import { useNavigate } from 'react-router-dom';
+import { getLocalFiles } from '../entries/entrySlice';
 
 function Input() {
   // Redux
@@ -59,7 +60,7 @@ function Input() {
           language: language
         },
         config: {
-          title: 'Placeholder title', // FIXME: #42 Get title from user
+          title: audio.name, // FIXME: #42 Get title from user
           description: 'Placeholder description', // FIXME:  Get description from user
           tags: ['Placeholder', 'tags'] // FIXME: #44 Get tags from user
         }
@@ -69,8 +70,10 @@ function Input() {
           if (result) {
             console.log('New entry created', result);
             // Reset form
-            dispatch(resetInput);
-
+            console.log('Resetting form');
+            dispatch(resetInput());
+            console.log('Getting local files');
+            dispatch(getLocalFiles());
             navigate('/transcriptions');
           }
         })
