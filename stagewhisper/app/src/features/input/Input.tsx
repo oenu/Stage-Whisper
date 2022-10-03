@@ -69,7 +69,7 @@ function Input() {
             console.log('New entry created', result);
             // Reset form
             dispatch(resetInput);
-            dispatch();
+
             navigate('/transcriptions');
           }
         })

@@ -5,8 +5,8 @@ import React from 'react';
 import { useAppSelector } from '../../redux/hooks';
 
 // Components
-import TranscriptionCard from './components/TranscriptionCard';
-import { selectActiveTranscription, selectTranscriptions } from './transcriptionsSlice';
+import TranscriptionCard from './components/EntryCard';
+import { selectActiveTranscription, selectTranscriptions } from './entrySlice';
 
 // Localization
 import TranscriptionEditor from './components/TranscriptionEditor';

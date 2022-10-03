@@ -50,8 +50,8 @@ import {
   selectActiveTranscription,
   selectNumberOfTranscriptions,
   selectTranscriptions,
-  setActiveTranscription
-} from './features/transcriptions/transcriptionsSlice';
+  setActiveEntry
+} from './features/entries/entrySlice';
 import Debug from './debug/Debug';
 
 // Recent Transcription Constructor
@@ -112,7 +112,7 @@ function RecentTranscriptions() {
               component={Link}
               to={`/transcriptions`}
               onClick={() => {
-                dispatch(setActiveTranscription(transcription.id));
+                dispatch(setActiveEntry(transcription.id));
                 dispatch(setBurgerOpen(false));
               }}
               active={transcription.id === activeTranscription}
@@ -189,7 +189,7 @@ function App() {
                 component={Link}
                 to="/transcriptions"
                 icon={<IconFileDescription size={18} />}
-                onClick={() => dispatch(setActiveTranscription(null))}
+                onClick={() => dispatch(setActiveEntry(null))}
                 disabled={numberOfTranscriptions === 0}
                 active={location.pathname === '/transcriptions' && activeTranscription === null}
               />

@@ -32,6 +32,10 @@ export type entryTranscription = {
   model: WhisperArgs['model']; // Model used to transcribe the audio
   language: WhisperArgs['language']; // Language of the audio file
   vtt: string; // The transcript in vtt format
+  status: transcriptionStatus; // Status of the transcription
+  progress: number; // Progress of the transcription
+  translated: boolean; // Whether the transcription has been translated
+  error: string | undefined; // Error message if the transcription failed
 };
 
 // An entry object - represents
@@ -41,4 +45,20 @@ export type entry = {
   audio: entryAudioParams; // Entry Audio Object
   path: string; // Path to the entry folder
   transcriptions: entryTranscription[] | []; // Array of Entry Transcription Objects
+  activeTranscription: string; // The active transcription for the entry
 };
+
+// List of possible entry statuses
+export enum transcriptionStatus {
+  IDLE = 'idle', // User has added a file to be transcribed but it has not been added to the queue
+  QUEUED = 'queued', // User has indicated they want to transcribe this file
+  PENDING = 'pending', // Transcription has started but its progress is unknown
+  PROCESSING = 'processing', // Transcription is in progress
+  STALLED = 'stalled', // Transcription is taking too long (probably due to a large model)
+  ERROR = 'error', // Transcription has failed
+  PAUSED = 'paused', // Transcription has been paused by the user
+  COMPLETE = 'complete', // Transcription has finished
+  CANCELLED = 'cancelled', // Transcription has been cancelled by the user
+  DELETED = 'deleted', // Transcription has been deleted by the user
+  UNKNOWN = 'unknown' // Transcription status is unknown (probably due to an error talking to the transcriber)
+}

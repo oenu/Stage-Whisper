@@ -15,7 +15,7 @@ import { setupStore } from './redux/store';
 
 import About from './features/about/About';
 import Settings from './features/settings/Settings';
-import Transcriptions from './features/transcriptions/Transcriptions';
+import Transcriptions from './features/entries/Entries';
 export const store = setupStore();
 
 ReactDOM.render(
