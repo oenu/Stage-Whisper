@@ -19,13 +19,7 @@ export default ipcMain.handle(
     const outputDir = join(entry.path, 'transcriptions', uuid);
     console.log('RunWhisper: outputDir', outputDir);
 
-    // Generate folder for the entry
-    // console.log('RunWhisper: Creating output directory...');
-    // mkdirSync(outputDir, { recursive: true });
-    // console.log('RunWhisper: Output directory created.');
-
     // Run Whisper
-
     console.log('Running whisper script');
     console.log('args: ', args);
 
@@ -42,8 +36,6 @@ export default ipcMain.handle(
     ]);
 
     // const out = spawn('whisper', ['--model', 'tiny.en', '--output_dir', outputDir, inputPath]); // FIXME: Use model args
-
-    // console.log('out: ', out);
 
     out.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
