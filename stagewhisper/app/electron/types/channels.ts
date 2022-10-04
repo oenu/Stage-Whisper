@@ -46,6 +46,7 @@ export type RunWhisperResponse = {
   transcription_uuid: string;
   outputDir: string;
   entry: entry;
+  transcribedOn: Date;
 };
 
 // Response type for the whisper-complete channel
