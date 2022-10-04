@@ -31,7 +31,7 @@ const api = {
 
   // Get the list of all entries stored in the app database
   loadDatabase: async (): Promise<{ entries: entry[]; error?: string }> => {
-    const result = (await ipcRenderer.invoke('load-database')) as { entries: entry[]; error?: string };
+    const result = await ipcRenderer.invoke('load-database');
     return result;
   },
 

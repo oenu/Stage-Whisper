@@ -29,6 +29,7 @@ function EntryEditor({ active: entry }: { active: entry }) {
         <Grid>
           <Grid.Col md={4} sm={12}>
             {/* Metadata 1 */}
+            Selected Entry ID: {entry.config.uuid}
           </Grid.Col>
           <Grid.Col md={8} sm={12}>
             {/* Metadata 2 */}

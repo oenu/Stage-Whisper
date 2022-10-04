@@ -54,8 +54,9 @@ import {
   getLocalFiles
 } from './features/entries/entrySlice';
 import Debug from './debug/Debug';
+import { entry } from '../electron/types';
 
-// Recent Transcription Constructor
+// Recent Transcription Constructor - Shows jobs that are in progress or queued
 function RecentTranscriptions() {
   const entries = useAppSelector(selectEntries);
   const activeEntry = useAppSelector(selectActiveEntry);
@@ -138,6 +139,46 @@ function RecentTranscriptions() {
   }
 }
 
+// Entries list - Shows all entries
+function EntryList() {
+  const entries = useAppSelector(selectEntries);
+  const activeEntry = useAppSelector(selectActiveEntry);
+  const dispatch = useAppDispatch();
+  return (
+    <>
+      <Divider mt={'sm'} />
+
+      {entries.map((entry) => {
+        return (
+          <NavLink
+            key={entry.config.uuid}
+            label={<Text lineClamp={1}>{entry.config.name}</Text>}
+            component={Link}
+            to={`/entries`}
+            onClick={() => {
+              dispatch(setActiveEntry(entry.config.uuid));
+              dispatch(setBurgerOpen(false));
+            }}
+            active={entry.config.uuid === activeEntry}
+            icon={<IconFileDescription />}
+            // icon={
+            //
+            // transcription.status === 'error' || transcription.status === 'unknown' ? ( // If transcription is error or unknown show error icon
+            //   <IconBugOff />
+            // ) : transcription.status === '' ? ( // If transcription is in progress show loading icon
+            //   <Loader size={'xs'} variant="oval" />
+            // ) : (
+            //   // Else show nothing
+            //   <></>
+            // )
+            // }
+          />
+        );
+      })}
+    </>
+  );
+}
+
 // Main App Component
 function App() {
   // Redux
@@ -146,7 +187,7 @@ function App() {
   const displayLanguage = useAppSelector(selectDisplayLanguage);
   const activeEntry = useAppSelector(selectActiveEntry);
   const burgerOpen = useAppSelector(selectBurgerOpen);
-  const numberOfTranscriptions = useAppSelector(selectNumberOfEntries);
+  const numberOfEntries = useAppSelector(selectNumberOfEntries);
 
   // Theming
   const theme = useMantineTheme();
@@ -197,16 +238,17 @@ function App() {
                 to="/entries"
                 icon={<IconFileDescription size={18} />}
                 onClick={() => dispatch(setActiveEntry(null))}
-                disabled={numberOfTranscriptions === 0}
+                disabled={numberOfEntries === 0}
                 active={location.pathname === '/entries' && activeEntry === null}
               />
             </Navbar.Section>
+            {/* Entries List*/}
+            <Navbar.Section>{EntryList()}</Navbar.Section>
 
             {/* Recent Transcription Section */}
             <Navbar.Section grow component={ScrollArea}>
               {RecentTranscriptions()}
             </Navbar.Section>
-
             {/* Settings Section */}
             <Navbar.Section>
               <NavLink

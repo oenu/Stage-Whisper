@@ -1,29 +1,15 @@
-import { useAppDispatch } from './../../redux/hooks';
 import { RootState } from '../../redux/store';
 // Transcription Slice
 // This holds the state of the transcriptions and will be updated by electron/node processes
 
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-// import { WhisperLanguages } from '../input/components/language/languages';
 import { entry } from '../../../electron/types';
-import { setSubmitted, setSubmitting } from '../input/inputSlice';
 
 export interface entryState {
   entries: entry[];
   activeEntry: string | null;
   thunk_status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'not_found';
 }
-
-// const lorem = new LoremIpsum({
-//   sentencesPerParagraph: {
-//     max: 8,
-//     min: 4
-//   },
-//   wordsPerSentence: {
-//     max: 16,
-//     min: 4
-//   }
-// });
 
 const initialState: entryState = {
   entries: [],
@@ -36,9 +22,10 @@ const initialState: entryState = {
 export const getLocalFiles = createAsyncThunk(
   'entries/getLocalFiles',
   async (): Promise<{ entries?: entry[]; error?: string }> => {
-    const dispatch = useAppDispatch();
     // Set Input State to loading
     const result = await window.Main.loadDatabase();
+    console.log('getLocalFiles result', result);
+
     if (result) {
       return { entries: result.entries };
     } else {
@@ -92,10 +79,12 @@ export const entrySlice = createSlice({
     });
     builder.addCase(getLocalFiles.fulfilled, (state, action) => {
       console.log('Getting Local Files: Fulfilled');
-      state.thunk_status = 'succeeded';
+      console.log('action.payload', action.payload);
       if (action.payload.entries) {
         state.entries = action.payload.entries;
+        console.log('state.entries', state.entries);
       }
+      state.thunk_status = 'succeeded';
     });
     builder.addCase(getLocalFiles.rejected, (state) => {
       console.log('Getting Local Files: Rejected');

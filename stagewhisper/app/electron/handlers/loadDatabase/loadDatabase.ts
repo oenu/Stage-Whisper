@@ -64,7 +64,7 @@ export default ipcMain.handle(
     // Get all entries
     try {
       const entryFolders = readdirSync(dataPath, { withFileTypes: true }).filter((dirent) => dirent.isDirectory());
-      console.log('Entry folders: ', entryFolders);
+      console.log('Found %s Entry Folders', entryFolders.length);
 
       // For each entry folder get the config and audio files and add them to the entries array
       try {

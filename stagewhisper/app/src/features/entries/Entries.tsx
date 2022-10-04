@@ -23,7 +23,7 @@ function Entries() {
     return <EntryCard key={entry.config.uuid} entry={entry} />;
   });
 
-  console.log(activeId);
+  console.log('Active Entry ID: ' + activeId);
   if (activeId === null) {
     return (
       <Stack>
