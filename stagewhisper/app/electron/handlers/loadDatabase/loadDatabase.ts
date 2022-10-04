@@ -1,3 +1,4 @@
+import { LoadDatabaseResponse } from './../channels.d';
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 // File to import all data from the data folder
 
@@ -56,7 +57,7 @@ const dataPath = join(storePath, 'data'); // Path to the data folder
 // Get all entries
 export default ipcMain.handle(
   Channels.loadDatabase,
-  async (_event: IpcMainInvokeEvent): Promise<{ entries: entry[]; error?: string }> => {
+  async (_event: IpcMainInvokeEvent): Promise<LoadDatabaseResponse> => {
     const entries: entry[] = [];
 
     console.log('Getting entries');

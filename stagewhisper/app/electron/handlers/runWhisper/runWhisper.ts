@@ -5,11 +5,11 @@ import { WhisperArgs } from '../../whisperTypes';
 import { v4 as uuidv4 } from 'uuid';
 import { entry } from '../../types';
 import { join } from 'path';
-import { Channels } from '../channels';
+import { Channels, RunWhisperResponse } from '../channels';
 
 export default ipcMain.handle(
   Channels.runWhisper,
-  async (_event: IpcMainInvokeEvent, args: WhisperArgs, entry: entry) => {
+  async (_event: IpcMainInvokeEvent, args: WhisperArgs, entry: entry): Promise<RunWhisperResponse> => {
     const { inputPath } = args;
 
     // Generate UUID for the entry
@@ -47,6 +47,6 @@ export default ipcMain.handle(
       ipcMain.emit(Channels.whisperComplete, code, outputDir, uuid);
     });
 
-    return { uuid, outputDir };
+    return { transcription_uuid: uuid, outputDir };
   }
 );

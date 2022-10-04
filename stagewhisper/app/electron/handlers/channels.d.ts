@@ -18,34 +18,34 @@ export enum Channels {
 // Channel Response Types
 
 // Response type for the load-database channel
-export interface LoadDatabaseResponse {
+export type LoadDatabaseResponse = {
   entries: entry[];
   error?: string;
-}
+};
 
 // Response type for the new-entry channel
-export interface NewEntryResponse {
+export type NewEntryResponse = {
   entry: entry;
   error?: string;
-}
+};
 
 // Response type for the run-whisper channel
-export interface RunWhisperResponse {
+export type RunWhisperResponse = {
   transcription_uuid: string;
   outputDir: string;
-}
+};
 
 // Response type for the whisper-complete channel
-export interface WhisperCompleteResponse {
+export type WhisperCompleteResponse = {
   outputDir: string;
   code: number;
   entry: entry;
   uuid: string;
-}
+};
 
 // Response type for the whisper-error channel
-export interface WhisperErrorResponse {
+export type WhisperErrorResponse = {
   transcription_uuid: string;
   error: string;
   entry: entry;
-}
+};
