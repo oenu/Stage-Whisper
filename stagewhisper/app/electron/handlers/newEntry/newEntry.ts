@@ -67,8 +67,8 @@ export default ipcMain.handle(
       console.log('NewEntry: File copied to: ' + newFilePath);
 
       console.log('NewEntry: Writing entry to store');
-      // Make entry_config file
-      writeFileSync(join(entryPath, 'entry_config.json'), JSON.stringify(entry.config, null, 2));
+      // Make entry config file
+      writeFileSync(join(entryPath, 'entry.json'), JSON.stringify(entry.config, null, 2));
       // Make Audio Parameters file
       writeFileSync(join(audioPath, 'parameters.json'), JSON.stringify(entry.audio, null, 2));
 
