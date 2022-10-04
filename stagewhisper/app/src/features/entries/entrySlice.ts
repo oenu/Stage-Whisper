@@ -1,3 +1,4 @@
+import { useAppDispatch } from './../../redux/hooks';
 import { RootState } from '../../redux/store';
 // Transcription Slice
 // This holds the state of the transcriptions and will be updated by electron/node processes
@@ -5,6 +6,7 @@ import { RootState } from '../../redux/store';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 // import { WhisperLanguages } from '../input/components/language/languages';
 import { entry } from '../../../electron/types';
+import { setSubmitted, setSubmitting } from '../input/inputSlice';
 
 export interface entryState {
   entries: entry[];
@@ -34,6 +36,8 @@ const initialState: entryState = {
 export const getLocalFiles = createAsyncThunk(
   'entries/getLocalFiles',
   async (): Promise<{ entries?: entry[]; error?: string }> => {
+    const dispatch = useAppDispatch();
+    // Set Input State to loading
     const result = await window.Main.loadDatabase();
     if (result) {
       return { entries: result.entries };
@@ -83,15 +87,18 @@ export const entrySlice = createSlice({
   extraReducers(builder) {
     // Update the transcription thunk_status when a thunk is called
     builder.addCase(getLocalFiles.pending, (state) => {
+      console.log('Getting Local Files: Pending');
       state.thunk_status = 'loading';
     });
     builder.addCase(getLocalFiles.fulfilled, (state, action) => {
+      console.log('Getting Local Files: Fulfilled');
       state.thunk_status = 'succeeded';
       if (action.payload.entries) {
         state.entries = action.payload.entries;
       }
     });
     builder.addCase(getLocalFiles.rejected, (state) => {
+      console.log('Getting Local Files: Rejected');
       state.thunk_status = 'idle';
     });
   }

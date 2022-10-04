@@ -13,7 +13,7 @@ import { selectAbout, selectHighlightInvalid, setAbout } from '../../inputSlice'
 
 // Types
 export interface AboutType {
-  title: string;
+  name: string;
   description: string | undefined;
   tags: string[] | undefined;
 }
@@ -27,18 +27,25 @@ function About() {
   const { aboutValid, about } = useAppSelector(selectAbout);
   const highlightInvalid = useAppSelector(selectHighlightInvalid);
 
+  const [name, setName] = React.useState(about.name);
+  const [description, setDescription] = React.useState(about.description);
+  const [tags, setTags] = React.useState(about.tags);
+
   return (
     <Card shadow="xs" p="md" withBorder title="Audio">
       <Stack>
         <Title order={4}>{strings.input?.about?.title}</Title>
         {/* Name of the entry */}
         <TextInput
-          error={aboutValid && highlightInvalid && !about?.title}
-          placeholder={strings.input?.about?.title.placeholder}
-          label={strings.input?.about?.title.prompt}
-          value={about.title}
+          error={aboutValid && highlightInvalid && !about?.name}
+          placeholder={strings.input?.about?.name.placeholder}
+          label={strings.input?.about?.name.prompt}
+          value={name}
           onChange={(e) => {
-            dispatch(setAbout({ ...about, title: e.currentTarget.value }));
+            setName(e.currentTarget.value);
+          }}
+          onBlur={() => {
+            dispatch(setAbout({ ...about, name: name }));
           }}
         />
         {/* Description of the entry */}
@@ -46,18 +53,24 @@ function About() {
           error={aboutValid && highlightInvalid && !about?.description}
           placeholder={strings.input?.about?.description.placeholder}
           label={strings.input?.about?.description.prompt}
-          value={about.description}
+          value={description}
           onChange={(e) => {
-            dispatch(setAbout({ ...about, description: e.currentTarget.value }));
+            setDescription(e.currentTarget.value);
+          }}
+          onBlur={() => {
+            dispatch(setAbout({ ...about, description: description }));
           }}
         />
         {/* Tags for the entry */}
         <TextInput
           placeholder={strings.input?.about?.tags.placeholder}
           label={strings.input?.about?.tags.prompt}
-          value={about.tags?.join(', ')}
+          value={tags}
           onChange={(e) => {
-            dispatch(setAbout({ ...about, tags: e.currentTarget.value.split(', ') }));
+            setTags(e.currentTarget.value.split(','));
+          }}
+          onBlur={() => {
+            dispatch(setAbout({ ...about, tags: tags }));
           }}
         />
       </Stack>

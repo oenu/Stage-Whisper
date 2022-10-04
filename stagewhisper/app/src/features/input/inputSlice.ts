@@ -37,8 +37,8 @@ export type inputState = {
 const initialState: inputState = {
   // Input States
   about: {
-    title: '',
-    description: undefined,
+    name: '',
+    description: '',
     tags: []
   },
   aboutValid: false,

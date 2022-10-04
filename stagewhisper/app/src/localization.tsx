@@ -107,7 +107,7 @@ export const strings = new LocalizedStrings(
         // Each of the following are the labels for the input fields separated by the type of input
         audio: {
           title: 'Audio',
-          prompt: 'Select audio file or drag and drop it here',
+          prompt: 'Select audio file from your computer',
           placeholder: 'Interview.mp3',
           limits: 'MP3, WAV, FLAC, OGG, AAC, M4A, WMA, and OPUS files are recommended',
           invalid: 'Invalid audio file'
@@ -142,6 +142,17 @@ export const strings = new LocalizedStrings(
             prompt: 'Name of this file',
             placeholder: 'Moon-ter-view'
           }
+        },
+        modal: {
+          title: 'Input',
+          success_queue: 'Successfully added entry to queue',
+          success_add: 'Entry successfully added!',
+          error: 'Error adding entry',
+          error_queue: 'Error adding entry to queue',
+          add_another: 'Add another file',
+          add_queue: 'Add to queue',
+          view_queue: 'View queue',
+          view_entries: 'View entries'
         },
 
         // The following are the labels for the models that can be used for transcription, each has a title and a description of the model.

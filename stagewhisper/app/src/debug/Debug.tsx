@@ -70,7 +70,7 @@ function Debug() {
           </Button>
           <Button
             onClick={() => {
-              dispatch(createDebugEntries());
+              // dispatch(createDebugEntries());
             }}
             variant="outline"
           >
