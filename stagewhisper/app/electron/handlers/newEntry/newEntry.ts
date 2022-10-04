@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { copyFileSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
-import { Channels, NewEntryResponse } from '../channels';
+import { Channels, NewEntryResponse } from '../../channels';
 
 // Create new entry and add it to the store
 
@@ -28,7 +28,7 @@ export default ipcMain.handle(
       console.log('NewEntry: Copying file to data folder');
 
       const newFilePath = join(dataPath, uuid, 'audio', args.audio.name);
-
+      console.log('NewEntry: newFilePath', newFilePath);
       // Create entry
       const entry: entry = {
         config: {
@@ -78,8 +78,8 @@ export default ipcMain.handle(
     } catch (error) {
       console.error('NewEntry: Error creating new entry: ' + error);
       if (error instanceof Error) {
-        return { entry: null, error: error.message };
-      } else return { entry: null, error: 'Unknown Error' };
+        return { error: error.message };
+      } else return { error: 'Unknown Error' };
     }
   }
 );

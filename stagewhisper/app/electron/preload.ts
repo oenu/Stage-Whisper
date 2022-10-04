@@ -1,14 +1,9 @@
-import {
-  NewEntryResponse,
-  RunWhisperResponse,
-  LoadDatabaseResponse,
-  OpenDirectoryDialogResponse
-} from './handlers/channels.d';
+import { NewEntryResponse, RunWhisperResponse, LoadDatabaseResponse, OpenDirectoryDialogResponse } from './channels';
 import { newEntryArgs } from './handlers/newEntry/newEntry';
 import { WhisperArgs } from './whisperTypes';
 import { ipcRenderer, contextBridge } from 'electron';
 import { entry } from './types';
-import { Channels } from './handlers/channels';
+import { Channels } from './channels';
 
 // import { languages } from '../src/components/language/languages';
 
@@ -40,7 +35,7 @@ const api = {
     if (result.error) {
       throw result.error;
     } else {
-      return result.entry;
+      return result;
     }
   },
 

@@ -65,7 +65,7 @@ function createWindow() {
   isDev && window?.webContents.openDevTools({ mode: 'detach' });
 
   // Whisper
-  ipcMain.on('whisper-complete', (event: IpcMainEvent, args: string) => {
+  ipcMain.on('whisper-complete', (_event: IpcMainEvent, args: string) => {
     console.log('whisper-complete', args);
   });
 
@@ -91,7 +91,7 @@ import './whisperTypes'; // Types for whisper model
 import './handlers/loadDatabase/loadDatabase'; // Get all entries from database
 import './handlers/newEntry/newEntry'; // Add a new entry to the database
 import { initializeApp } from './functions/initialize/initializeApp';
-import { Channels, OpenDirectoryDialogResponse } from './handlers/channels';
+import { Channels, OpenDirectoryDialogResponse } from './channels';
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

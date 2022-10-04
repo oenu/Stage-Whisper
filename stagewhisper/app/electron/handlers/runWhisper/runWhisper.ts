@@ -1,11 +1,11 @@
-import { mkdirSync } from 'fs';
 import { spawn } from 'child_process';
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
-import { WhisperArgs } from '../../whisperTypes';
-import { v4 as uuidv4 } from 'uuid';
-import { entry } from '../../types';
+// import { mkdirSync } from 'fs';
 import { join } from 'path';
-import { Channels, RunWhisperResponse } from '../channels';
+import { v4 as uuidv4 } from 'uuid';
+import { Channels, RunWhisperResponse } from '../../channels';
+import { entry } from '../../types';
+import { WhisperArgs } from '../../whisperTypes';
 
 export default ipcMain.handle(
   Channels.runWhisper,
@@ -20,17 +20,29 @@ export default ipcMain.handle(
     console.log('RunWhisper: outputDir', outputDir);
 
     // Generate folder for the entry
-    console.log('RunWhisper: Creating output directory...');
-    mkdirSync(outputDir, { recursive: true });
-    console.log('RunWhisper: Output directory created.');
+    // console.log('RunWhisper: Creating output directory...');
+    // mkdirSync(outputDir, { recursive: true });
+    // console.log('RunWhisper: Output directory created.');
 
     // Run Whisper
 
     console.log('Running whisper script');
     console.log('args: ', args);
 
-    // const out = spawn('whisper', ['--model', 'base.en', '--output_dir', join(__dirname, '../src/debug/data')]);
-    const out = spawn('whisper', [inputPath, '--model', 'tiny.en', '--output_dir', outputDir]);
+    // Synchronously run the script
+    const out = spawn('whisper', [
+      '--model',
+      'base.en',
+      '--output_dir',
+      `${outputDir}`,
+      '--language',
+      `${entry.audio.language}`,
+      `${inputPath}`
+    ]);
+
+    // const out = spawn('whisper', ['--model', 'tiny.en', '--output_dir', outputDir, inputPath]); // FIXME: Use model args
+
+    // console.log('out: ', out);
 
     out.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);

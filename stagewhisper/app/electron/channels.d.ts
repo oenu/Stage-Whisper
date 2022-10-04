@@ -1,4 +1,4 @@
-import { entry } from './getEntries/types.d';
+import { entry } from './types';
 // List of all channels used by electron IPC
 
 export enum Channels {
@@ -31,7 +31,7 @@ export type LoadDatabaseResponse = {
 
 // Response type for the new-entry channel
 export type NewEntryResponse = {
-  entry: entry;
+  entry?: entry;
   error?: string;
 };
 
