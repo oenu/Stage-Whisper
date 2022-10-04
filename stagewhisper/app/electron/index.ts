@@ -91,6 +91,7 @@ import './whisperTypes'; // Types for whisper model
 import './handlers/loadDatabase/loadDatabase'; // Get all entries from database
 import './handlers/newEntry/newEntry'; // Add a new entry to the database
 import { initializeApp } from './functions/initialize/initializeApp';
+import { Channels, OpenDirectoryDialogResponse } from './handlers/channels';
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -128,11 +129,13 @@ ipcMain.on('message', (event: IpcMainEvent, message: unknown) => {
   setTimeout(() => event.sender.send('message', 'hi from electron'), 500);
 });
 
-ipcMain.handle('open-directory-dialog', async () => {
+ipcMain.handle(Channels.openDirectoryDialog, async (): Promise<OpenDirectoryDialogResponse> => {
   // Trigger electron directory picker and return the selected directory
   const directory = await dialog.showOpenDialog({
     properties: ['openDirectory']
   });
 
-  return directory.canceled ? null : directory.filePaths[0];
+  return {
+    path: directory.canceled ? null : directory.filePaths[0]
+  };
 });

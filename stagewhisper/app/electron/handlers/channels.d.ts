@@ -2,8 +2,8 @@
 
 export enum Channels {
   // Utility channels
-  // Trigger a directory picker
-  openDirectoryDialog = 'open-directory-dialog',
+
+  openDirectoryDialog = 'open-directory-dialog', // Trigger a directory picker
 
   // Database channels
   loadDatabase = 'load-database', // Loads all entries from the database and returns them
@@ -16,6 +16,11 @@ export enum Channels {
 }
 
 // Channel Response Types
+
+// Response type for the openDirectoryDialog channel
+export interface OpenDirectoryDialogResponse {
+  path: string | null;
+}
 
 // Response type for the load-database channel
 export type LoadDatabaseResponse = {
