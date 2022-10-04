@@ -116,38 +116,6 @@ export const whisperSlice = createSlice({
   }
 });
 
-// if (action.payload.result && action.payload.result.entry) {
-//   const index = state.entries.findIndex(
-//     (entry) => entry.config.uuid === action?.payload?.result?.entry.config.uuid
-//   );
-//   if (index !== -1) {
-//     // Set the entries 'active_transcription' to the new transcription id
-//     state.entries[index].config.activeTranscription = action.payload.result.transcription_uuid;
-//   }
-// } else {
-//   console.log('passToWhisper: Fulfilled: No entry returned');
-// }
-
-// state.trigger_whisper_status = 'succeeded';
-
-// extraReducers: (builder) => {
-//   // When a passToWhisper thunk is dispatched
-//   builder.addCase(passToWhisper.pending, (state) => {
-//     // Set the status to loading
-//     state.status = 'loading';
-//   });
-//   builder.addCase(passToWhisper.fulfilled, (state, action) => {
-//     // If the transcription was successful
-//     if (action.payload.result) {
-//       // Set the status to succeeded
-//       state.status = 'succeeded';
-//       // Remove the transcription from the queue
-//       state.queue = state.queue.filter((entry) => entry.transcription_id !== action.payload.result?.transcription_uuid);
-//       // Set the active entry to null
-//       state.activeEntry = null;
-//     } else {
-//       // If the transcription
-
 export const {
   addToQueue,
   removeFromQueue,

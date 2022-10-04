@@ -23,7 +23,6 @@ import { useDispatch } from 'react-redux';
 import strings from '../../../localization';
 import { useAppDispatch } from '../../../redux/hooks';
 import { passToWhisper } from '../../whisper/whisperSlice';
-import { WhisperArgs } from '../../../../electron/types/whisperTypes';
 
 //#region Component Helpers
 const progressIndicator = (active_transcript: entry['transcriptions'][0]) => {

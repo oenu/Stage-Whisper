@@ -1,5 +1,3 @@
-import { RunWhisperResponse } from './../../../electron/types/channels';
-import { WhisperArgs } from './../../../electron/types/whisperTypes';
 import { entry } from './../../../electron/types/types';
 
 import { RootState } from '../../redux/store';
