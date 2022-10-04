@@ -5,6 +5,7 @@ import { join } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import { app } from 'electron';
 import { entry, entryTranscription } from '../../types';
+import { Channels } from '../channels';
 
 // Paths
 
@@ -54,7 +55,7 @@ const dataPath = join(storePath, 'data'); // Path to the data folder
 
 // Get all entries
 export default ipcMain.handle(
-  'load-database',
+  Channels.loadDatabase,
   async (_event: IpcMainInvokeEvent): Promise<{ entries: entry[]; error?: string }> => {
     const entries: entry[] = [];
 

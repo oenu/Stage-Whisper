@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { copyFileSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
+import { Channels } from '../channels';
 
 // Create new entry and add it to the store
 
@@ -14,7 +15,7 @@ export type newEntryArgs = {
 };
 
 export default ipcMain.handle(
-  'new-entry',
+  Channels.newEntry,
   async (_event: IpcMainInvokeEvent, args: newEntryArgs): Promise<{ entry: entry | null; error?: string }> => {
     const rootPath = app.getPath('userData'); // Path to the top level of the data folder
     const storePath = join(rootPath, 'store'); // Path to the store folder
