@@ -1,8 +1,9 @@
+import { WhisperArgs } from './../../../electron/whisperTypes';
 import { RootState } from '../../redux/store';
 // Transcription Slice
 // This holds the state of the transcriptions and will be updated by electron/node processes
 
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { entry } from '../../../electron/types';
 
 export interface entryState {
@@ -34,33 +35,60 @@ export const getLocalFiles = createAsyncThunk(
   }
 );
 
+export const whisperTranscribe = createAsyncThunk(
+  'entries/whisperTranscribe',
+  async (entry: entry): Promise<{ entry: entry; error?: string }> => {
+    const args: WhisperArgs = {
+      inputPath: entry.audio.path
+    };
+    // Set Input State to loading
+    const result = await window.Main.runWhisper(args, entry);
+    console.log('whisperTranscribe result', result);
+
+    if (result) {
+      return { entry: result.entry };
+    } else {
+      return { error: 'Error transcribing' };
+    }
+  }
+);
+
 export const entrySlice = createSlice({
   name: 'entries',
   initialState,
   reducers: {
-    setActiveEntry: (state, action) => {
-      // This action is called when a transcription is opened by the user
-      state.activeEntry = action.payload;
+    setActiveEntry: (state, action: PayloadAction<entry | null>) => {
+      // This action is called when a entry is opened by the user
+
+      if (action.payload) {
+        state.activeEntry = action.payload.config.uuid;
+      } else {
+        state.activeEntry = null;
+      }
     },
 
-    addEntry: (state, action) => {
-      // This action is called when a transcription is added
+    addEntry: (state, action: PayloadAction<entry>) => {
+      // This action is called when a entry is added
       state.entries.push(action.payload);
     },
 
-    updateEntry: (state, action) => {
+    entryToWhisper: (state, action: PayloadAction<entry | null>) => {
+      // This action is called when an entry is sent to whisper
+    },
+
+    updateEntry: (state, action: PayloadAction<entry>) => {
       // FIXME: Convert to use electron
-      // This action is called when a transcription is updated
-      const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload.id);
+      // This action is called when a entry is updated
+      const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload.config.uuid);
       if (index !== -1) {
         state.entries[index] = action.payload;
       }
     },
 
-    removeEntry: (state, action) => {
+    removeEntry: (state, action: PayloadAction<entry>) => {
       // FIXME: Convert to use electron to remove from database
-      // This action is called when a transcription is removed
-      const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload);
+      // This action is called when a entry is removed
+      const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload.config.uuid);
       if (index !== -1) {
         state.entries.splice(index, 1);
       }
@@ -72,7 +100,7 @@ export const entrySlice = createSlice({
     }
   },
   extraReducers(builder) {
-    // Update the transcription thunk_status when a thunk is called
+    // Update the entry thunk_status when a thunk is called
     builder.addCase(getLocalFiles.pending, (state) => {
       console.log('Getting Local Files: Pending');
       state.thunk_status = 'loading';
@@ -95,7 +123,7 @@ export const entrySlice = createSlice({
 
 export const { addEntry, updateEntry, removeEntry, test, setActiveEntry } = entrySlice.actions;
 
-// Export Transcription States
+// Export Entry States
 export const selectEntries = (state: RootState) => state.entries.entries;
 export const selectActiveEntry = (state: RootState) => state.entries.activeEntry;
 export const selectNumberOfEntries = (state: RootState) => state.entries.entries.length;

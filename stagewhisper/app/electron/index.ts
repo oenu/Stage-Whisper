@@ -36,7 +36,6 @@ export const readFilePromise = (path: string): Promise<string> =>
         })
       : reject(new Error('File does not exist'));
   });
-
 //#endregion
 
 function createWindow() {
@@ -64,6 +63,11 @@ function createWindow() {
 
   // eslint-disable-next-line no-unused-expressions
   isDev && window?.webContents.openDevTools({ mode: 'detach' });
+
+  // Whisper
+  ipcMain.on('whisper-complete', (event: IpcMainEvent, args: string) => {
+    console.log('whisper-complete', args);
+  });
 
   // For AppBar
   ipcMain.on('minimize', () => {

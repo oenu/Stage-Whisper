@@ -2,6 +2,7 @@ import { newEntryArgs } from './handlers/newEntry/newEntry';
 import { WhisperArgs } from './whisperTypes';
 import { ipcRenderer, contextBridge } from 'electron';
 import { entry } from './types';
+import { Channels } from './handlers/channels';
 
 // import { languages } from '../src/components/language/languages';
 
@@ -15,7 +16,7 @@ declare global {
 const api = {
   // Add a new file to the database
   newEntry: async (args: newEntryArgs) => {
-    const result = await ipcRenderer.invoke('new-entry', args);
+    const result = await ipcRenderer.invoke(Channels.newEntry, args);
 
     if (result.error) {
       throw result.error;
@@ -25,19 +26,27 @@ const api = {
   },
 
   // Run the whisper model with given arguments
-  runWhisper: (args: WhisperArgs) => {
-    ipcRenderer.invoke('run-whisper', args);
+  runWhisper: async (args: WhisperArgs, entry: entry) => {
+    console.log('runWhisper args', args);
+
+    const result = await ipcRenderer.invoke(Channels.runWhisper, args, entry);
+
+    if (result.error) {
+      throw result.error;
+    } else {
+      return result.entry;
+    }
   },
 
   // Get the list of all entries stored in the app database
   loadDatabase: async (): Promise<{ entries: entry[]; error?: string }> => {
-    const result = await ipcRenderer.invoke('load-database');
+    const result = await ipcRenderer.invoke(Channels.loadDatabase);
     return result;
   },
 
   // Trigger an OS level directory picker
   openDirectoryDialog: async () => {
-    const result = await ipcRenderer.invoke('open-directory-dialog');
+    const result = await ipcRenderer.invoke(Channels.openDirectoryDialog);
     return result;
   },
 
