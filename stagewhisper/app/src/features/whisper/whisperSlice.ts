@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RunWhisperResponse } from '../../../electron/types/channels';
 // import { RunWhisperResponse } from '../../../electron/types/channels';
 import { entry } from '../../../electron/types/types';
+import { WhisperArgs } from '../../../electron/types/whisperTypes';
 // import { WhisperArgs } from '../../../electron/types/whisperTypes';
 // import { RootState } from '../../redux/store';
 
@@ -32,29 +34,22 @@ const initialState: whisperState = {
   status: 'disabled'
 };
 
-// // Thunk for running a whisper transcription from the queue
-// export const whisperTranscribe = createAsyncThunk(
-//   'whisper/whisperTranscribe',
-//   async (entry: entry): Promise<{ result?: RunWhisperResponse; error?: string }> => {
-//     const args: WhisperArgs = {
-//       inputPath: entry.audio.path
-//     };
-//     const result = await window.Main.runWhisper(args, entry);
-
-//     window.
-//     if (result) {
-//       return { result };
-//     } else {
-//       throw { error: 'Error running whisper' };
-//     }
-//   }
-// );
-
-// Thunk that can be called to process the next transcription if it exists
-export const processNextTranscription = createAsyncThunk(
-  'whisper/processNextTranscription',
-  async (): Promise<void> => {
-    return;
+export const passToWhisper = createAsyncThunk(
+  // A promise that will be resolved when the transcription is complete
+  'whisper/passToWhisper',
+  async ({ entry, args }: { entry: entry; args?: WhisperArgs }): Promise<RunWhisperResponse> => {
+    if (!args) {
+      args = {
+        inputPath: entry.audio.path
+      };
+    }
+    const result = await window.Main.runWhisper(args, entry);
+    console.log('passToWhisper result', result);
+    if (result) {
+      return result;
+    } else {
+      throw { error: 'Error running whisper' };
+    }
   }
 );
 
@@ -94,24 +89,31 @@ export const whisperSlice = createSlice({
       // Clear the status
       state.status = 'idle';
     }
+  },
+  extraReducers: (builder) => {
+    // Thunk for running the whisper transcribe
+    builder.addCase(passToWhisper.pending, (state) => {
+      // Whisper is running the transcription for the active entry
+      console.log('Redux: passToWhisper: Pending');
+      state.status = 'loading';
+    });
+    builder.addCase(passToWhisper.fulfilled, (state, action) => {
+      // Whisper has finished running the transcription for the active entry
+      console.log('Redux: passToWhisper: Fulfilled');
+      state.status = 'succeeded';
+      if (state.activeEntry) {
+        state.activeEntry.status = 'succeeded';
+      }
+    });
+    builder.addCase(passToWhisper.rejected, (state, action) => {
+      // Whisper has failed to run the transcription for the active entry
+      console.log('Redux: passToWhisper: Rejected');
+      state.status = 'failed';
+      if (state.activeEntry) {
+        state.activeEntry.status = 'failed';
+      }
+    });
   }
-  // extraReducers: (builder) => {
-  //   // When a whisperTranscribe thunk is dispatched
-  //   builder.addCase(whisperTranscribe.pending, (state) => {
-  //     // Set the status to loading
-  //     state.status = 'loading';
-  //   });
-  //   builder.addCase(whisperTranscribe.fulfilled, (state, action) => {
-  //     // If the transcription was successful
-  //     if (action.payload.result) {
-  //       // Set the status to succeeded
-  //       state.status = 'succeeded';
-  //       // Remove the transcription from the queue
-  //       state.queue = state.queue.filter((entry) => entry.transcription_id !== action.payload.result?.transcription_uuid);
-  //       // Set the active entry to null
-  //       state.activeEntry = null;
-  //     } else {
-  //       // If the transcription
 });
 
 export const {

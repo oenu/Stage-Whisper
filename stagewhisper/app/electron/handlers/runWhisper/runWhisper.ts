@@ -46,7 +46,7 @@ export default ipcMain.handle(
     // Generate UUID for the entry
     const uuid = uuidv4();
 
-    const transcribedOn = new Date();
+    const transcribedOn = new Date().toISOString();
 
     // Generate output path
     const outputDir = join(entry.path, 'transcriptions', uuid);
@@ -89,7 +89,7 @@ export default ipcMain.handle(
           const parameters: entryTranscription = {
             uuid,
             transcribedOn,
-            completedOn: new Date(),
+            completedOn: new Date().toISOString(),
             model, // Model used to transcribe
             language, // Language of the audio file
             status: transcriptionStatus.COMPLETE, // Status of the transcription
