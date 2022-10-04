@@ -1,6 +1,5 @@
 // Electron
-import { ipcMain, IpcMainInvokeEvent, ipcRenderer } from 'electron';
-import { writeFileSync } from 'fs';
+import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { join } from 'path';
 
 // Packages
@@ -56,7 +55,7 @@ export default ipcMain.handle(
     // Run Whisper
     console.log('Running whisper script');
 
-    const passedArgs = [
+    const inputs = [
       '--output_dir',
       `${outputDir}`,
       '--model',
@@ -66,95 +65,57 @@ export default ipcMain.handle(
       '--device',
       `${device}`,
       '--language',
-      `${entry.audio.language}`,
+      `${language}`,
       `${inputPath}`
     ];
 
-    console.log('RunWhisper: Running model with args', passedArgs);
+    console.log('RunWhisper: Running model with args', inputs);
 
     // Synchronously run the script
     // TODO: #48 Make this async
-    const childProcess = spawn('whisper', passedArgs);
+    const childProcess = spawn('whisper', inputs, { stdio: 'inherit' });
 
-    childProcess.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
+    const transcription = await new Promise((resolve, reject): void => {
+      childProcess.on('data', (data: string) => {
+        console.log(`stdout: ${data}`);
+      });
+      childProcess.on('error', (error: Error) => {
+        console.log(`stderr: ${error.message}`);
+      });
+
+      childProcess.on('close', (code: number) => {
+        console.log(`RunWhisper: Child process closed with code ${code}`);
+        if (code === 0) {
+          const parameters: entryTranscription = {
+            uuid,
+            transcribedOn,
+            completedOn: new Date(),
+            model, // Model used to transcribe
+            language, // Language of the audio file
+            status: transcriptionStatus.COMPLETE, // Status of the transcription
+            progress: 100, // Progress of the transcription
+            translated: task === 'translate', // If the transcription was translated
+            error: undefined, // Error message
+            path: outputDir // Path to the transcription folder
+          };
+          resolve(parameters);
+        } else {
+          reject(new Error(`Child process exited with code ${code}`));
+        }
+      });
     });
-    childProcess.stderr.on('data', (err) => {
-      console.log(`stderr: ${err}`);
-    });
-    childProcess.on('message', (message) => {
-      console.log(`message: ${message}`);
-    });
 
-    // Handle End of Script
-    childProcess.on('close', async (code) => {
-      console.log('finished running whisper script');
-      console.log(`Whisper process exited with code ${code}`);
-      if (code === 0) {
-        // Create a new entry transcription
-
-        // Collect transcription parameters
-        const parameters: entryTranscription = {
-          uuid,
-          transcribedOn,
-          completedOn: new Date(),
-          model, // Model used to transcribe
-          language, // Language of the audio file
-          status: transcriptionStatus.COMPLETE, // Status of the transcription
-          progress: 100, // Progress of the transcription
-          translated: task === 'translate', // If the transcription was translated
-          error: undefined, // Error message
-          path: outputDir // Path to the transcription folder
-        };
-
-        // Create a transcription.json file
-        console.log('Creating transcription.json file');
-        writeFileSync(join(outputDir, 'transcription.json'), JSON.stringify(parameters));
-        console.log('Created transcription.json file');
-        // Return the parameters
-
-        // Use Webcontents to send the parameters to the renderer
-
-        ipcRenderer.send('transcription-complete', parameters);
-      } else {
-        console.log('Whisper script failed');
-      }
-
-      //console.log(`child process exited with code ${code}`); // TODO: #49 Handle the output of the script
-    });
-    return {
-      transcription_uuid: uuid,
-      outputDir,
-      entry
-    };
-    // // Synchronous version of above
-    // const out = spawnSync('whisper', passedArgs);
-    // console.log('finished running whisper script');
-    // console.log(`Whisper process exited with code ${out.status}`);
-    // if (out.status === 0) {
-    //   // Create a new entry transcription
-
-    //   // Collect transcription parameters
-    //   const parameters: entryTranscription = {
-    //     uuid,
-    //     transcribedOn,
-    //     completedOn: new Date(),
-    //     model,
-    //     language,
-    //     status: transcriptionStatus.COMPLETE,
-    //     progress: 100,
-    //     translated: task === 'translate',
-    //     error: undefined,
-    //     path: outputDir
-    //   };
-
-    //   // Create a transcription.json file
-    //   console.log('Creating transcription.json file');
-    //   writeFileSync(join(outputDir, 'transcription.json'), JSON.stringify(parameters));
-    //   console.log('Created transcription.json file');
-    // } else {
-    //   console.log('Whisper script failed');
-    //   throw new Error('Whisper script failed' + out.error);
-    // }
+    if (transcription) {
+      const parameters: RunWhisperResponse = {
+        transcription_uuid: uuid,
+        outputDir,
+        entry,
+        transcribedOn
+      };
+      console.log('RunWhisper: Transcription complete, returning entry');
+      return parameters;
+    } else {
+      throw new Error('Transcription failed');
+    }
   }
 );
