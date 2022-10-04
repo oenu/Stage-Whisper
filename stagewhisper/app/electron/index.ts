@@ -17,7 +17,7 @@ import './handlers/loadVtt/loadVtt'; // Testing
 import './handlers/runWhisper/runWhisper'; // Run whisper model
 import './handlers/loadDatabase/loadDatabase'; // Get all entries from database
 import './handlers/newEntry/newEntry'; // Add a new entry to the database
-import './handlers/deleteStore/deleteStore';
+import './handlers/deleteStore/deleteStore'; // Non functional
 import { initializeApp } from './functions/initialize/initializeApp';
 
 // Electron Defaults
@@ -86,6 +86,11 @@ function createWindow() {
   ipcMain.on('maximize', () => {
     // eslint-disable-next-line no-unused-expressions
     window.isMaximized() ? window.restore() : window.maximize();
+  });
+
+  // Listen for Whisper model to complete
+  ipcMain.on(Channels.transcriptionComplete, (_event: IpcMainEvent, args: string) => {
+    window.webContents.send(Channels.transcriptionComplete, args);
   });
 
   ipcMain.on('close', () => {

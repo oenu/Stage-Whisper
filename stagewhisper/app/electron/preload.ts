@@ -38,6 +38,8 @@ const api = {
     console.log(`invoking runWhisper, args:  ${args} | entryName: ${entry.config.name}`);
     try {
       const result = await ipcRenderer.invoke(Channels.runWhisper, args, entry);
+      // const result = ipcRenderer.sendSync(Channels.runWhisper, args, entry);
+
       if (result.error) {
         throw result.error;
       } else {

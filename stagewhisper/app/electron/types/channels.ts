@@ -13,6 +13,7 @@ export enum Channels {
   // Whisper channels
   runWhisper = 'run-whisper', // Runs the whisper model with given arguments and returns the entry
   whisperComplete = 'whisper-complete', // Returns the entry and path to the transcription
+  transcriptionComplete = 'transcription-complete', // Transcription complete event - Triggers WebContents.send
   whisperError = 'whisper-error' // Returns the error message
 }
 
