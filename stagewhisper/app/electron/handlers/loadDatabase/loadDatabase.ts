@@ -76,20 +76,28 @@ export default ipcMain.handle(
           const configPath = join(entryPath, 'entry.json');
           if (!readdirSync(join(entryPath)).includes('entry.json')) {
             // throw new Error(`Entry ${entryFolder.name} does not have a config file`);
-            console.log(`Entry ${entryFolder.name} does not have a config file`);
+            console.warn(`LoadDatabase: Entry ${entryFolder.name} does not have a config file`);
             return;
           }
 
           // Check if the entry folder has an audio folder
           const audioFolderPath = join(entryPath, 'audio');
-          if (!readdirSync(join(entryPath)).includes('audio')) {
-            throw new Error(`Entry ${entryFolder.name} does not have an audio folder`);
+          try {
+            readdirSync(join(entryPath)).includes('audio');
+          } catch (error) {
+            console.warn(`LoadDatabase: Entry ${entryFolder.name} does not have an audio folder`);
+            return;
+            // throw new Error(`Entry ${entryFolder.name} does not have an audio folder`);
           }
 
           // Check if the entry folder has a transcriptions folder and if it has any transcriptions
           const transcriptionFolderPath = join(entryPath, 'transcriptions');
-          if (!readdirSync(join(entryPath)).includes('transcriptions')) {
-            throw new Error(`Entry ${entryFolder.name} does not have a transcriptions folder`);
+          try {
+            readdirSync(join(entryPath)).includes('transcriptions');
+          } catch (error) {
+            console.warn(`LoadDatabase: Entry ${entryFolder.name} does not have a transcriptions folder`);
+            return;
+            // throw new Error(`Entry ${entryFolder.name} does not have a transcriptions folder`);
           }
 
           // Get the config file
@@ -103,16 +111,34 @@ export default ipcMain.handle(
           readdirSync(transcriptionFolderPath, { withFileTypes: true })
             .filter((dirent) => dirent.isDirectory())
             .forEach((transcriptionFolder) => {
-              // Get the parameters file
-              const parameters = JSON.parse(
-                readFileSync(join(transcriptionFolderPath, transcriptionFolder.name, 'audio.json'), 'utf8')
-              );
+              // Check if the transcription folder has a transcription.json file
+              console.log('Transcription folder: ', transcriptionFolder);
+              const transcriptionPath = join(transcriptionFolderPath, transcriptionFolder.name);
+              const transcriptionConfigPath = join(transcriptionPath, 'transcription.json');
 
-              // Get the transcript file
-              const transcript = readFileSync(
-                join(transcriptionFolderPath, transcriptionFolder.name, 'transcript.vtt'),
-                'utf8'
-              );
+              try {
+                readdirSync(transcriptionConfigPath);
+              } catch {
+                console.warn(`LoadDatabase: Transcription ${transcriptionFolder.name} does not have a config file`);
+                return; // TODO: #54 Implement a way to handle this error ( Transcription was not handled and has no config file )
+              }
+
+              // If it exists get the transcription.json file
+              const parameters = JSON.parse(readFileSync(join(transcriptionConfigPath), 'utf8'));
+
+              // Check if the transcription folder has a transcript.vtt file
+              try {
+                readdirSync(transcriptionPath).includes(`${audio.name}.vtt`);
+              } catch {
+                console.warn(
+                  `LoadDatabase: Transcription ${transcriptionFolder.name} does not have a transcript.vtt file`
+                );
+                return; // TODO: #55 Implement a way to handle this error ( Transcription was not handled and has no transcript file )
+              }
+
+              // If it exists get the transcript.vtt file
+              const vttPath = join(transcriptionPath, `${audio.name}.vtt`);
+              const transcript = readFileSync(join(vttPath), 'utf8');
 
               // Add the transcription to the transcriptions array
               const transcription: entryTranscription = {
