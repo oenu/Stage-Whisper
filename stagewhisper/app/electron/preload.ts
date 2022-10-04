@@ -1,3 +1,9 @@
+import {
+  NewEntryResponse,
+  RunWhisperResponse,
+  LoadDatabaseResponse,
+  OpenDirectoryDialogResponse
+} from './handlers/channels.d';
 import { newEntryArgs } from './handlers/newEntry/newEntry';
 import { WhisperArgs } from './whisperTypes';
 import { ipcRenderer, contextBridge } from 'electron';
@@ -15,7 +21,7 @@ declare global {
 
 const api = {
   // Add a new file to the database
-  newEntry: async (args: newEntryArgs) => {
+  newEntry: async (args: newEntryArgs): Promise<NewEntryResponse> => {
     const result = await ipcRenderer.invoke(Channels.newEntry, args);
 
     if (result.error) {
@@ -26,7 +32,7 @@ const api = {
   },
 
   // Run the whisper model with given arguments
-  runWhisper: async (args: WhisperArgs, entry: entry) => {
+  runWhisper: async (args: WhisperArgs, entry: entry): Promise<RunWhisperResponse> => {
     console.log('runWhisper args', args);
 
     const result = await ipcRenderer.invoke(Channels.runWhisper, args, entry);
@@ -39,27 +45,27 @@ const api = {
   },
 
   // Get the list of all entries stored in the app database
-  loadDatabase: async (): Promise<{ entries: entry[]; error?: string }> => {
+  loadDatabase: async (): Promise<LoadDatabaseResponse> => {
     const result = await ipcRenderer.invoke(Channels.loadDatabase);
     return result;
   },
 
   // Trigger an OS level directory picker
-  openDirectoryDialog: async () => {
+  openDirectoryDialog: async (): Promise<OpenDirectoryDialogResponse> => {
     const result = await ipcRenderer.invoke(Channels.openDirectoryDialog);
     return result;
   },
 
   // Testing: Load a file from the app directory
-  loadVttFromFile: async (path: string, exampleData: boolean) => {
-    if (exampleData === true) {
-      const result = (await ipcRenderer.invoke('load-vtt-from-file', path, exampleData)) as NodeList;
-      return result;
-    } else {
-      const result = (await ipcRenderer.invoke('load-vtt-from-file', path)) as NodeList;
-      return result;
-    }
-  },
+  // loadVttFromFile: async (path: string, exampleData: boolean) => {
+  //   if (exampleData === true) {
+  //     const result = (await ipcRenderer.invoke('load-vtt-from-file', path, exampleData)) as NodeList;
+  //     return result;
+  //   } else {
+  //     const result = (await ipcRenderer.invoke('load-vtt-from-file', path)) as NodeList;
+  //     return result;
+  //   }
+  // },
 
   on: (channel: string, callback: (data: any) => void) => {
     ipcRenderer.on(channel, (_, data) => callback(data));

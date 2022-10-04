@@ -1,3 +1,4 @@
+import { entry } from './getEntries/types.d';
 // List of all channels used by electron IPC
 
 export enum Channels {
@@ -37,6 +38,7 @@ export type NewEntryResponse = {
 // Response type for the run-whisper channel
 export type RunWhisperResponse = {
   transcription_uuid: string;
+  entry: entry;
   outputDir: string;
 };
 

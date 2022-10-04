@@ -1,3 +1,4 @@
+import { RunWhisperResponse } from './../../../electron/handlers/channels.d';
 import { WhisperArgs } from './../../../electron/whisperTypes';
 import { RootState } from '../../redux/store';
 // Transcription Slice
@@ -9,14 +10,16 @@ import { entry } from '../../../electron/types';
 export interface entryState {
   entries: entry[];
   activeEntry: string | null;
-  thunk_status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'not_found';
+  get_files_status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'not_found';
+  trigger_whisper_status: 'idle' | 'loading' | 'succeeded' | 'failed';
 }
 
 const initialState: entryState = {
   entries: [],
   activeEntry: null,
   // Thunk State for accessing local files via electron
-  thunk_status: 'idle'
+  get_files_status: 'idle',
+  trigger_whisper_status: 'idle'
 };
 
 // Thunk for loading the transcriptions from the database
@@ -37,7 +40,7 @@ export const getLocalFiles = createAsyncThunk(
 
 export const whisperTranscribe = createAsyncThunk(
   'entries/whisperTranscribe',
-  async (entry: entry): Promise<{ entry: entry; error?: string }> => {
+  async (entry: entry): Promise<RunWhisperResponse | string> => {
     const args: WhisperArgs = {
       inputPath: entry.audio.path
     };
@@ -46,9 +49,9 @@ export const whisperTranscribe = createAsyncThunk(
     console.log('whisperTranscribe result', result);
 
     if (result) {
-      return { entry: result.entry };
+      return { entry: result.entry, outputDir: result.outputDir, transcription_uuid: result.transcription_uuid };
     } else {
-      return { error: 'Error transcribing' };
+      return 'Error running whisper';
     }
   }
 );
@@ -70,10 +73,6 @@ export const entrySlice = createSlice({
     addEntry: (state, action: PayloadAction<entry>) => {
       // This action is called when a entry is added
       state.entries.push(action.payload);
-    },
-
-    entryToWhisper: (state, action: PayloadAction<entry | null>) => {
-      // This action is called when an entry is sent to whisper
     },
 
     updateEntry: (state, action: PayloadAction<entry>) => {
@@ -100,10 +99,10 @@ export const entrySlice = createSlice({
     }
   },
   extraReducers(builder) {
-    // Update the entry thunk_status when a thunk is called
+    // Thunk for loading the transcriptions from the database
     builder.addCase(getLocalFiles.pending, (state) => {
       console.log('Getting Local Files: Pending');
-      state.thunk_status = 'loading';
+      state.get_files_status = 'loading';
     });
     builder.addCase(getLocalFiles.fulfilled, (state, action) => {
       console.log('Getting Local Files: Fulfilled');
@@ -112,12 +111,51 @@ export const entrySlice = createSlice({
         state.entries = action.payload.entries;
         console.log('state.entries', state.entries);
       }
-      state.thunk_status = 'succeeded';
+      state.get_files_status = 'succeeded';
     });
     builder.addCase(getLocalFiles.rejected, (state) => {
       console.log('Getting Local Files: Rejected');
-      state.thunk_status = 'idle';
+      state.get_files_status = 'idle';
     });
+
+    // Thunk for running the whisper transcribe
+    builder.addCase(whisperTranscribe.pending, (state) => {
+      console.log('whisperTranscribe: Pending');
+      state.trigger_whisper_status = 'loading';
+    });
+    builder.addCase(
+      whisperTranscribe.fulfilled,
+      (
+        state,
+        action: {
+          payload: RunWhisperResponse | string;
+        }
+      ) => {
+        console.log('whisperTranscribe: Fulfilled'); // Whisper has accepted the request
+
+        console.log('action.payload: fulfilled whisper transcribe', action.payload);
+        if (action.payload) {
+          if (typeof action.payload === 'string') {
+            console.log('Error in action.payload', action.payload);
+            state.trigger_whisper_status = 'failed';
+          } else {
+            state.trigger_whisper_status = 'succeeded';
+            console.log('action.payload', action.payload);
+            console.log("TriggerWhisper: Fulfilled: Updating entry's transcription_uuid");
+            const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload.entry.config.uuid);
+            if (index !== -1) {
+              state.entries[index].transcription_uuid = action.payload.transcription_uuid; // Update the entry's transcription_uuid
+
+              console.log('state.entries[index]', state.entries[index]);
+
+              // Update the entry's transcription_uuid
+            }
+          }
+        } else {
+          state.trigger_whisper_status = 'failed';
+        }
+      }
+    );
   }
 });
 

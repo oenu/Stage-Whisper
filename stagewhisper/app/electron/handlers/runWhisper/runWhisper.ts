@@ -47,6 +47,6 @@ export default ipcMain.handle(
       ipcMain.emit(Channels.whisperComplete, code, outputDir, uuid);
     });
 
-    return { transcription_uuid: uuid, outputDir };
+    return { transcription_uuid: uuid, outputDir, entry };
   }
 );
