@@ -21,6 +21,7 @@ import { entry, transcriptionStatus } from '../../../../electron/types';
 // Localization
 import { useDispatch } from 'react-redux';
 import strings from '../../../localization';
+import { whisperTranscribe } from '../entrySlice';
 
 //#region Component Helpers
 const progressIndicator = (active_transcript: entry['transcriptions'][0]) => {
@@ -303,6 +304,7 @@ const buttonBlock = (active_transcript: entry['transcriptions'][0]) => {
 function TranscriptionCard({ entry }: { entry: entry }) {
   // Local state for the entry card - used to show/hide the file/entry details
   const [expanded, setExpanded] = useState<string[]>([]);
+  const dispatch = useDispatch();
   const activeTranscription = entry.transcriptions.find(
     (transcription) => transcription.uuid === entry.config.activeTranscription // TODO: Implement a way to view all transcriptions not just active
   );
@@ -445,7 +447,7 @@ function TranscriptionCard({ entry }: { entry: entry }) {
         {entry.config.description}
       </Title>
       <Divider mt="xs" mb="xs" />
-      <Button onClick={() => console.log('Transcribe')}>{strings.entries?.buttons.add_to_queue}</Button>
+      <Button onClick={() => dispatch(whisperTranscribe(entry))}>{strings.entries?.buttons.add_to_queue}</Button>
     </Card>
   );
 

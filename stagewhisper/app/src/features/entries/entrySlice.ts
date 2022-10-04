@@ -38,23 +38,22 @@ export const getLocalFiles = createAsyncThunk(
   }
 );
 
-export const whisperTranscribe = createAsyncThunk(
-  'entries/whisperTranscribe',
-  async (entry: entry): Promise<RunWhisperResponse | string> => {
-    const args: WhisperArgs = {
-      inputPath: entry.audio.path
-    };
-    // Set Input State to loading
-    const result = await window.Main.runWhisper(args, entry);
-    console.log('whisperTranscribe result', result);
+export const whisperTranscribe = createAsyncThunk('entries/whisperTranscribe', async (entry: entry) => {
+  const args: WhisperArgs = {
+    inputPath: entry.audio.path
+  };
+  // Set Input State to loading
+  const result = await window.Main.runWhisper(args, entry);
+  console.log('whisperTranscribe result', result);
 
-    if (result) {
-      return { entry: result.entry, outputDir: result.outputDir, transcription_uuid: result.transcription_uuid };
-    } else {
-      return 'Error running whisper';
-    }
+  if (result) {
+    return { entry: result.entry, outputDir: result.outputDir, transcription_uuid: result.transcription_uuid };
+  } else {
+    throw new Error('Error running whisper');
   }
-);
+  // return { error: 'Error running whisper' };
+  // }
+});
 
 export const entrySlice = createSlice({
   name: 'entries',
@@ -123,39 +122,27 @@ export const entrySlice = createSlice({
       console.log('whisperTranscribe: Pending');
       state.trigger_whisper_status = 'loading';
     });
-    builder.addCase(
-      whisperTranscribe.fulfilled,
-      (
-        state,
-        action: {
-          payload: RunWhisperResponse | string;
-        }
-      ) => {
-        console.log('whisperTranscribe: Fulfilled'); // Whisper has accepted the request
+    builder.addCase(whisperTranscribe.fulfilled, (state, action: PayloadAction<RunWhisperResponse>) => {
+      console.log('whisperTranscribe: Fulfilled'); // Whisper has accepted the request
 
-        console.log('action.payload: fulfilled whisper transcribe', action.payload);
-        if (action.payload) {
-          if (typeof action.payload === 'string') {
-            console.log('Error in action.payload', action.payload);
-            state.trigger_whisper_status = 'failed';
-          } else {
-            state.trigger_whisper_status = 'succeeded';
-            console.log('action.payload', action.payload);
-            console.log("TriggerWhisper: Fulfilled: Updating entry's transcription_uuid");
-            const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload.entry.config.uuid);
-            if (index !== -1) {
-              state.entries[index].transcription_uuid = action.payload.transcription_uuid; // Update the entry's transcription_uuid
-
-              console.log('state.entries[index]', state.entries[index]);
-
-              // Update the entry's transcription_uuid
-            }
-          }
-        } else {
+      console.log('action.payload: fulfilled whisper transcribe', action.payload);
+      if (action.payload) {
+        if (typeof action.payload === 'string') {
+          console.log('Error in action.payload', action.payload);
           state.trigger_whisper_status = 'failed';
+        } else {
+          state.trigger_whisper_status = 'succeeded';
+          console.log('action.payload', action.payload);
+          console.log("TriggerWhisper: Fulfilled: Updating entry's transcription_uuid");
+          const index = state.entries.findIndex((entry) => entry.config.uuid === action.payload.entry.config.uuid);
+          if (index !== -1) {
+            state.entries[index].config.activeTranscription = action.payload.transcription_uuid;
+          }
         }
+      } else {
+        state.trigger_whisper_status = 'failed';
       }
-    );
+    });
   }
 });
 
