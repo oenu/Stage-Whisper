@@ -306,7 +306,8 @@ function TranscriptionCard({ entry }: { entry: entry }) {
   const activeTranscription = entry.transcriptions.find(
     (transcription) => transcription.uuid === entry.config.activeTranscription // TODO: Implement a way to view all transcriptions not just active
   );
-  return (
+
+  const CardWithTranscription = (
     <Card withBorder>
       <Group>
         <Title order={2} lineClamp={2}>
@@ -431,6 +432,27 @@ function TranscriptionCard({ entry }: { entry: entry }) {
       <Divider mt="xs" mb="xs" />
     </Card>
   );
-}
 
+  const CardWithoutTranscription = (
+    <Card withBorder>
+      <Group>
+        <Title order={2} lineClamp={2}>
+          {entry.config.name}
+        </Title>
+      </Group>
+
+      <Title italic order={6} lineClamp={1}>
+        {entry.config.description}
+      </Title>
+      <Divider mt="xs" mb="xs" />
+      <Button onClick={() => console.log('Transcribe')}>{strings.entries?.buttons.add_to_queue}</Button>
+    </Card>
+  );
+
+  if (entry.transcriptions.length > 0) {
+    return CardWithTranscription;
+  } else {
+    return CardWithoutTranscription;
+  }
+}
 export default TranscriptionCard;
