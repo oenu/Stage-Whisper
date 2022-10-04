@@ -20,27 +20,27 @@ const dataPath = join(storePath, 'data'); // Path to the data folder
 // ├── app_config.json { version, repo, ... }
 // └── data/
 //     ├── entry_{uuidv4}/
-//     │   ├── entry_config.json { inQueue, title, model, etc }
+//     │   ├── entry.json { inQueue, title, model, etc }
 //     │   ├── audio/
 //     │   │   ├── file.mp3 | file.opus | file.wav
-//     │   │   └── parameters.json { addedOn, language, type }
+//     │   │   └── entry.json { addedOn, language, type }
 //     │   └── transcriptions/
 //     │       └── {uuid}/
-//     │           ├── parameters.json { language, transcribedOn, model, ... }
+//     │           ├── transcription.json { language, transcribedOn, model, ... }
 //     │           ├── transcript.vtt (Use VTT as source of truth and compile to txt)
 //     │           └── transcript.txt
 //     └── entry_1bfb7987-da1d-4a02-87a9-e841c5dd4e29/
-//         ├── entry_config.json
+//         ├── entry.json
 //         ├── audio/
 //         │   ├── fancy_twice_sample.opus
-//         │   └── parameters.json {addedOn: 30-12-9999, language: Korean, tpye: Opus
+//         │   └── entry.json {addedOn: 30-12-9999, language: Korean, tpye: Opus
 //         └── transcriptions/
 //             ├── 3a8b37f4-3a41-4522-b3cc-1c6e28a3ab75/
-//             │   ├── parameters.json { langauge: English, transcribedOn: 30-12-9999, model: baseEn, ... }
+//             │   ├── transcription.json { langauge: English, transcribedOn: 30-12-9999, model: baseEn, ... }
 //             │   ├── transcript.vtt
 //             │   └── transcript.txt
 //             └── 7fcf511c-f9d5-4bdc-a427-19a28f6e8ca1/
-//                 ├── parameters.json { langauge: Korean, transcribedOn: 30-12-9999, model: large, ... }
+//                 ├── transcription.json { langauge: Korean, transcribedOn: 30-12-9999, model: large, ... }
 //                 ├── transcript.vtt
 //                 └── transcript.txt
 
@@ -73,8 +73,8 @@ export default ipcMain.handle(
         entryFolders.forEach((entryFolder) => {
           // Check if the entry folder has a config file
           const entryPath = join(dataPath, entryFolder.name);
-          const configPath = join(entryPath, 'entry_config.json');
-          if (!readdirSync(join(entryPath)).includes('entry_config.json')) {
+          const configPath = join(entryPath, 'entry.json');
+          if (!readdirSync(join(entryPath)).includes('entry.json')) {
             // throw new Error(`Entry ${entryFolder.name} does not have a config file`);
             console.log(`Entry ${entryFolder.name} does not have a config file`);
             return;
@@ -96,7 +96,7 @@ export default ipcMain.handle(
           const config = JSON.parse(readFileSync(configPath, 'utf8')) as entry['config'];
 
           // Get the audio file
-          const audio = JSON.parse(readFileSync(join(audioFolderPath, 'parameters.json'), 'utf8')) as entry['audio'];
+          const audio = JSON.parse(readFileSync(join(audioFolderPath, 'audio.json'), 'utf8')) as entry['audio'];
 
           // Get the transcriptions
           const transcriptions: entryTranscription[] = [];
@@ -105,7 +105,7 @@ export default ipcMain.handle(
             .forEach((transcriptionFolder) => {
               // Get the parameters file
               const parameters = JSON.parse(
-                readFileSync(join(transcriptionFolderPath, transcriptionFolder.name, 'parameters.json'), 'utf8')
+                readFileSync(join(transcriptionFolderPath, transcriptionFolder.name, 'audio.json'), 'utf8')
               );
 
               // Get the transcript file
