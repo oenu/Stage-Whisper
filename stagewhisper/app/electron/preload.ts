@@ -35,21 +35,12 @@ const api = {
 
   // Run the whisper model with given arguments
   runWhisper: async (args: WhisperArgs, entry: entry): Promise<RunWhisperResponse> => {
-    console.log(`invoking runWhisper, args:  ${args} | entryName: ${entry.config.name}`);
-    try {
-      const result = await ipcRenderer.invoke(Channels.runWhisper, args, entry);
-      // const result = ipcRenderer.sendSync(Channels.runWhisper, args, entry);
+    console.log('Preload: RunWhisper: args', args);
 
-      if (result.error) {
-        throw result.error;
-      } else {
-        return result;
-      }
-    } catch (err) {
-      console.log(`Error in runWhisper: ${err}`);
+    const result = (await ipcRenderer.invoke(Channels.runWhisper, args, entry)) as RunWhisperResponse;
+    console.log(`Preload: Invoked RunWhisper, result: ${result}`);
 
-      throw err;
-    }
+    return result;
   },
 
   // Delete store file
