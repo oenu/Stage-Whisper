@@ -8,11 +8,11 @@ import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
 // Packages
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent } from 'electron';
 import isDev from 'electron-is-dev';
-import { Channels, OpenDirectoryDialogResponse } from './channels';
+import { Channels, OpenDirectoryDialogResponse } from './types/channels';
 import { existsSync, readFile } from 'fs';
 
 // Import handlers
-import './whisperTypes'; // Types for whisper model
+import './types/whisperTypes'; // Types for whisper model
 import './handlers/loadVtt/loadVtt'; // Testing
 import './handlers/runWhisper/runWhisper'; // Run whisper model
 import './handlers/loadDatabase/loadDatabase'; // Get all entries from database

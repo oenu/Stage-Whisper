@@ -1,10 +1,10 @@
-import { entry, entryAudioParams, entryConfig } from '../../types';
+import { entry, entryAudioParams, entryConfig } from '../../types/types';
 import { app, ipcMain, IpcMainInvokeEvent } from 'electron';
 import { v4 as uuidv4 } from 'uuid';
 import { copyFileSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
-import { Channels, NewEntryResponse } from '../../channels';
+import { Channels, NewEntryResponse } from '../../types/channels';
 
 // Create new entry and add it to the store
 
@@ -70,7 +70,7 @@ export default ipcMain.handle(
       // Make entry config file
       writeFileSync(join(entryPath, 'entry.json'), JSON.stringify(entry.config, null, 2));
       // Make Audio Parameters file
-      writeFileSync(join(audioPath, 'parameters.json'), JSON.stringify(entry.audio, null, 2));
+      writeFileSync(join(audioPath, 'audio.json'), JSON.stringify(entry.audio, null, 2));
 
       console.log('NewEntry: Entry created successfully');
 

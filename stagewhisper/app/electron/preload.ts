@@ -5,11 +5,11 @@ import {
   NewEntryResponse,
   OpenDirectoryDialogResponse,
   RunWhisperResponse
-} from './channels';
+} from './types/channels';
 // import { initializeApp } from './functions/initialize/initializeApp';
 import { newEntryArgs } from './handlers/newEntry/newEntry';
-import { entry } from './types';
-import { WhisperArgs } from './whisperTypes';
+import { entry } from './types/types';
+import { WhisperArgs } from './types/whisperTypes';
 
 // import { languages } from '../src/components/language/languages';
 

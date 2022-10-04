@@ -1,11 +1,12 @@
-import { RunWhisperResponse } from '../../../electron/channels';
-import { WhisperArgs } from './../../../electron/whisperTypes';
+import { RunWhisperResponse } from './../../../electron/types/channels';
+import { WhisperArgs } from './../../../electron/types/whisperTypes';
+import { entry } from './../../../electron/types/types';
+
 import { RootState } from '../../redux/store';
 // Transcription Slice
 // This holds the state of the transcriptions and will be updated by electron/node processes
 
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { entry } from '../../../electron/types';
 
 export interface entryState {
   entries: entry[];

@@ -1,4 +1,4 @@
-import { entry } from '../../types';
+import { entry } from '../../types/types';
 // Initialize the app with the data folder
 
 import {

@@ -16,7 +16,7 @@ import React, { useState } from 'react';
 
 // Redux
 
-import { entry, transcriptionStatus } from '../../../../electron/types';
+import { entry, transcriptionStatus } from '../../../../electron/types/types';
 
 // Localization
 import { useDispatch } from 'react-redux';

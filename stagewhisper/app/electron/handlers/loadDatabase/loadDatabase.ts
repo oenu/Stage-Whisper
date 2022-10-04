@@ -1,12 +1,12 @@
-import { LoadDatabaseResponse } from '../../channels';
+import { LoadDatabaseResponse } from '../../types/channels';
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 // File to import all data from the data folder
 
 import { join } from 'path';
 import { readdirSync, readFileSync } from 'fs';
 import { app } from 'electron';
-import { entry, entryTranscription } from '../../types';
-import { Channels } from '../../channels';
+import { entry, entryTranscription } from '../../types/types';
+import { Channels } from '../../types/channels';
 
 // Paths
 
