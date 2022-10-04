@@ -39,25 +39,6 @@ export const getLocalFiles = createAsyncThunk(
   }
 );
 
-export const whisperTranscribe = createAsyncThunk(
-  'entries/whisperTranscribe',
-  async (entry: entry): Promise<{ result?: RunWhisperResponse; error?: string }> => {
-    const args: WhisperArgs = {
-      inputPath: entry.audio.path
-    };
-
-    const result = await window.Main.runWhisper(args, entry);
-
-    console.log('whisperTranscribe result', result);
-
-    if (result) {
-      return { result };
-    } else {
-      throw { error: 'Error running whisper' };
-    }
-  }
-);
-
 export const entrySlice = createSlice({
   name: 'entries',
   initialState,
@@ -118,29 +99,6 @@ export const entrySlice = createSlice({
     builder.addCase(getLocalFiles.rejected, (state) => {
       console.log('Getting Local Files: Rejected');
       state.get_files_status = 'idle';
-    });
-
-    // Thunk for running the whisper transcribe
-    builder.addCase(whisperTranscribe.pending, (state) => {
-      console.log('whisperTranscribe: Pending');
-      state.trigger_whisper_status = 'loading';
-    });
-    builder.addCase(whisperTranscribe.fulfilled, (state, action) => {
-      console.log('whisperTranscribe: Fulfilled');
-      console.log('action.payload', action.payload);
-      if (action.payload.result && action.payload.result.entry) {
-        const index = state.entries.findIndex(
-          (entry) => entry.config.uuid === action?.payload?.result?.entry.config.uuid
-        );
-        if (index !== -1) {
-          // Set the entries 'active_transcription' to the new transcription id
-          state.entries[index].config.activeTranscription = action.payload.result.transcription_uuid;
-        }
-      } else {
-        console.log('whisperTranscribe: Fulfilled: No entry returned');
-      }
-
-      state.trigger_whisper_status = 'succeeded';
     });
   }
 });
