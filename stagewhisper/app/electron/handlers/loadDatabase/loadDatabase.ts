@@ -8,8 +8,10 @@ import { app } from 'electron';
 import { entry, entryTranscription } from '../../types/types';
 import { Channels } from '../../types/channels';
 
-// Paths
+// Subtitle Parser
+import { parseSync } from 'subtitle';
 
+// Paths
 const rootPath = app.getPath('userData'); // Path to the top level of the data folder
 const storePath = join(rootPath, 'store'); // Path to the store folder
 const dataPath = join(storePath, 'data'); // Path to the data folder
@@ -146,8 +148,11 @@ export default ipcMain.handle(
               }
 
               // If it exists get the transcript.vtt file
+
               const vttPath = join(transcriptionPath, `${audio.name}.vtt`);
-              const transcript = readFileSync(join(vttPath), 'utf8');
+              // const transcript = readFileSync(join(vttPath), 'utf8');
+              const vttFile = readFileSync(join(vttPath), 'utf8');
+              const vtt = parseSync(vttFile);
 
               // Add the transcription to the transcriptions array
               const transcription: entryTranscription = {
@@ -156,7 +161,7 @@ export default ipcMain.handle(
                 language: parameters.language,
                 model: parameters.model,
                 path: join(transcriptionFolderPath, transcriptionFolder.name),
-                vtt: transcript,
+                vtt,
                 status: parameters.status,
                 progress: parameters.progress,
                 translated: parameters.translated,
@@ -193,6 +198,13 @@ export default ipcMain.handle(
           console.log('LoadDatabase: Entry Added: ', entry.config.name);
           entries.push(entry);
         });
+
+        // Log to table
+        console.table(
+          entries.map((entry) => {
+            return { name: entry.config.name, numTranscripts: entry.transcriptions.length, lang: entry.audio.language };
+          })
+        );
 
         return { entries: entries };
       } catch (error) {
