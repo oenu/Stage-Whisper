@@ -58,22 +58,6 @@ export const whisperTranscribe = createAsyncThunk(
   }
 );
 
-//       inputPath: action.payload.path
-//     };
-//     // Set Input State to loading
-//     const result = await window.Main.runWhisper(args, action.payload);
-//     console.log('whisperTranscribe result', result);
-
-//     if (result) {
-//       return { entry: result.entry, outputDir: result.outputDir, transcription_uuid: result.transcription_uuid };
-//     } else {
-//       throw new Error('Error running whisper');
-//     }
-//     // return { error: 'Error running whisper' };
-//     // }
-//   }
-// );
-
 export const entrySlice = createSlice({
   name: 'entries',
   initialState,
