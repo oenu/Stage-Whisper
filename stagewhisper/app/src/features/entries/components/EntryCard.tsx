@@ -27,6 +27,7 @@ import { entry, transcriptionStatus } from '../../../../electron/types/types';
 import strings from '../../../localization';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { passToWhisper, selectTranscribingStatus } from '../../whisper/whisperSlice';
+import { setActiveEntry } from '../entrySlice';
 
 //#region Component Helpers
 const progressIndicator = (active_transcript: entry['transcriptions'][0]) => {
@@ -134,141 +135,6 @@ const progressIndicator = (active_transcript: entry['transcriptions'][0]) => {
     />
   );
 };
-type buttonTypes =
-  | 'edit' // Edit the entry
-  | 'delete' // Delete the entry
-  | 'cancel' // Cancel the entry (if it is queued or pending)
-  | 'pause' // Pause the entry (if it is processing)
-  | 'resume' // Resume the entry (if it is paused)
-  | 'download' // Download the entry
-  | 'retry' // Retry the entry (if it is in an error state)
-  | 'restore' // Restore the entry (if it is deleted)
-  | 'queue' // Queue the entry (if it is idle)
-  | 'open' // Open the entry detail view (if it is complete)
-  | 'close' // Close the entry in the editor
-  | 'play' // Play the entry original audio
-  | 'stop' // Stop the entry original audio
-  | 'transcribe'; // Transcribe the entry
-
-const buttonConstructor = (buttonType: buttonTypes, buttonEntry: entry) => {
-  const dispatch = useAppDispatch();
-
-  const buttonStrings = strings.util.buttons;
-
-  const buttons: {
-    // TODO: None of these buttons do anything as I need to build out the redux actions and decide on a naming convention
-    [key in buttonTypes]: {
-      dispatchAction: string;
-      label: string;
-      color: MantineColor;
-      style: ButtonVariant;
-    };
-  } = {
-    edit: {
-      dispatchAction: '', // TODO: Add an action for this
-      label: buttonStrings?.edit || 'Edit',
-      color: 'red',
-      style: 'default'
-    },
-    delete: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.delete || 'Delete',
-      color: 'red',
-      style: 'outline'
-    },
-    cancel: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.cancel || 'Cancel',
-      color: 'red',
-      style: 'default'
-    },
-    pause: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.pause || 'Pause',
-      color: 'red',
-      style: 'default'
-    },
-    resume: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.resume || 'Resume',
-      color: 'red',
-      style: 'default'
-    },
-    download: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.download || 'Download',
-      color: 'red',
-      style: 'default'
-    },
-    retry: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.retry || 'Retry',
-      color: 'red',
-      style: 'default'
-    },
-    restore: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.restore || 'Restore',
-      color: 'red',
-      style: 'default'
-    },
-    queue: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.queue || 'Queue',
-      color: 'red',
-      style: 'default'
-    },
-    open: {
-      dispatchAction: 'entries/setActiveEntry',
-      label: buttonStrings?.open || 'Open',
-      color: 'primary',
-      style: 'outline'
-    },
-    close: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.close || 'Close',
-      color: 'red',
-      style: 'default'
-    },
-    play: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.play || 'Play',
-      color: 'red',
-      style: 'default'
-    },
-    stop: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
-      label: buttonStrings?.stop || 'Stop',
-      color: 'red',
-      style: 'default'
-    },
-    transcribe: {
-      dispatchAction: 'whisper/passToWhisper',
-      label: buttonStrings?.transcribe || 'Transcribe',
-      color: 'green',
-      style: 'outline'
-    }
-  };
-
-  return (
-    <Button
-      key={buttonType}
-      onClick={() => {
-        if (buttons[buttonType].dispatchAction) {
-          dispatch({ type: buttons[buttonType].dispatchAction, payload: buttonEntry });
-        } else {
-          console.log('No dispatch action for this button: ', buttonType);
-        }
-      }}
-      size="sm"
-      color={buttons[buttonType].color}
-      variant={buttons[buttonType].style}
-      // disabled // TODO: Add logic to these buttons, then remove this
-    >
-      {buttons[buttonType].label}
-    </Button>
-  );
-};
 
 // #endregion
 
@@ -293,14 +159,49 @@ function TranscriptionCard({ entry }: { entry: entry }) {
     entry.transcriptions.length > 0 ? (
       // Has transcriptions
       <>
-        {buttonConstructor('open', entry)}
-        {buttonConstructor('delete', entry)}
+        <Button
+          onClick={() => {
+            dispatch(setActiveEntry(entry));
+          }}
+          color="green"
+          variant="outline"
+        >
+          {strings.util.buttons?.open}
+        </Button>
+        <Button
+          onClick={() => {
+            console.log('Delete');
+          }}
+          color="red"
+          variant="outline"
+          disabled={transcribing.status === 'loading' && transcribing.entry?.config.uuid === entry.config.uuid}
+        >
+          {strings.util.buttons?.delete}
+        </Button>
       </>
     ) : (
       // No transcriptions
       <>
-        {buttonConstructor('transcribe', entry)}
-        {buttonConstructor('delete', entry)}
+        <Button
+          onClick={() => {
+            dispatch(passToWhisper({ entry }));
+          }}
+          color="green"
+          variant="outline"
+          disabled={transcribing.status === 'loading'}
+        >
+          {strings.util.buttons?.transcribe}
+        </Button>
+        <Button
+          onClick={() => {
+            console.log('Delete');
+          }}
+          color="red"
+          variant="outline"
+          disabled={transcribing.status === 'loading' && transcribing.entry?.config.uuid === entry.config.uuid}
+        >
+          {strings.util.buttons?.delete}
+        </Button>
       </>
     );
 
