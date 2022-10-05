@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 
-const [audioBuffer, setAudioBuffer] = useState<Blob | null>(null);
+const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
 // Calls main process to get audio file, returned in format Uint8Array that can be recomposed into an audio file
 const handleAudioUint8Array = async (filePath: string) => {
   window.Main.fetchAudioFile(filePath).then((audio) => {
     const audioBlob = new Blob([audio], { type: 'audio/mp3' });
-    setAudioBuffer(audioBlob);
+    setAudioBlob(audioBlob);
   });
 };
 
-function AudioPlayer() {
+function AudioPlayer(filePath: string) {
+  if (filePath) {
+    handleAudioUint8Array(filePath);
+  }
+
   return (
     <div>
-      {audioBuffer && (
+      {audioBlob && (
         <audio controls>
-          <source src={URL.createObjectURL(audioBuffer)} type="audio/mp3" />
+          <source src={URL.createObjectURL(audioBlob)} type="audio/mp3" />
         </audio>
       )}
     </div>
