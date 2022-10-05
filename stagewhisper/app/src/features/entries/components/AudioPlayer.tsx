@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-
 function AudioPlayer({ filePath }: { filePath: string }) {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
@@ -19,15 +18,13 @@ function AudioPlayer({ filePath }: { filePath: string }) {
     }
   }, []);
 
-  return (
-    <div>
-      {audioBlob && (
-        <audio controls>
-          <source src={URL.createObjectURL(audioBlob)} type="audio/mp3" />
-        </audio>
-      )}
-    </div>
-  );
+  return audioBlob ? (
+    <>
+      <audio controls>
+        <source src={URL.createObjectURL(audioBlob)} type="audio/mp3" />
+      </audio>
+    </>
+  ) : null;
 }
 
 export default AudioPlayer;
