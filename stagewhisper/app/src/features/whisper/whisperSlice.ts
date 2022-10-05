@@ -11,7 +11,7 @@ import { WhisperArgs } from '../../../electron/types/whisperTypes';
 
 export type queueEntry = {
   // Represents an entry in the queue
-  transcription_id?: string; // Id of the transcription
+  transcription_uuid?: string; // Id of the transcription
   entry: entry; // Entry that requested the transcription
   status: 'idle' | 'loading' | 'succeeded' | 'failed'; // Status of the transcription
 };
@@ -43,7 +43,8 @@ export const passToWhisper = createAsyncThunk(
         inputPath: entry.audio.path
       };
     }
-    const result = await window.Main.runWhisper(args, entry);
+    const result = await window.Main.runWhisper(args, entry); // Resolves when the transcription is complete
+
     console.log('passToWhisper result', result);
     if (result) {
       return result;
@@ -57,34 +58,34 @@ export const whisperSlice = createSlice({
   name: 'whisper',
   initialState,
   reducers: {
-    addToQueue: (state, action: PayloadAction<entry>) => {
-      // Add an entry to the queue
-      state.queue.push({ entry: action.payload, status: 'idle' });
-    },
-    removeFromQueue: (state, action: PayloadAction<entry>) => {
-      // Remove an entry from the queue
-      state.queue = state.queue.filter((entry) => entry.entry.config.uuid !== action.payload.config.uuid);
-    },
-    setStatus: (state, action: PayloadAction<'idle' | 'loading' | 'succeeded' | 'failed' | 'disabled'>) => {
-      // Set the status of the queue
-      state.status = action.payload;
-    },
-    setActiveEntry: (state, action: PayloadAction<queueEntry | null>) => {
-      // Set the active entry
-      state.activeEntry = action.payload;
-    },
-    setQueue: (state, action: PayloadAction<queueEntry[]>) => {
-      // Set the queue
-      state.queue = action.payload;
-    },
-    clearQueue: (state) => {
-      // Clear the queue
-      state.queue = [];
-    },
-    clearActiveEntry: (state) => {
-      // Clear the active entry
-      state.activeEntry = null;
-    },
+    // addToQueue: (state, action: PayloadAction<entry>) => {
+    //   // Add an entry to the queue
+    //   state.queue.push({ entry: action.payload, status: 'idle' });
+    // },
+    // removeFromQueue: (state, action: PayloadAction<entry>) => {
+    //   // Remove an entry from the queue
+    //   state.queue = state.queue.filter((entry) => entry.entry.config.uuid !== action.payload.config.uuid);
+    // },
+    // setStatus: (state, action: PayloadAction<'idle' | 'loading' | 'succeeded' | 'failed' | 'disabled'>) => {
+    //   // Set the status of the queue
+    //   state.status = action.payload;
+    // },
+    // setActiveEntry: (state, action: PayloadAction<queueEntry | null>) => {
+    //   // Set the active entry
+    //   state.activeEntry = action.payload;
+    // },
+    // setQueue: (state, action: PayloadAction<queueEntry[]>) => {
+    //   // Set the queue
+    //   state.queue = action.payload;
+    // },
+    // clearQueue: (state) => {
+    //   // Clear the queue
+    //   state.queue = [];
+    // },
+    // clearActiveEntry: (state) => {
+    //   // Clear the active entry
+    //   state.activeEntry = null;
+    // },
     clearStatus: (state) => {
       // Clear the status
       state.status = 'idle';
@@ -100,6 +101,14 @@ export const whisperSlice = createSlice({
     builder.addCase(passToWhisper.fulfilled, (state, action) => {
       // Whisper has finished running the transcription for the active entry
       console.log('Redux: passToWhisper: Fulfilled');
+
+      // Trigger a refresh of the entry slice
+
+      if (state.activeEntry) {
+        state.activeEntry.status = 'succeeded';
+        state.activeEntry.transcription_uuid = action.payload.transcription_uuid;
+      }
+
       state.status = 'succeeded';
       if (state.activeEntry) {
         state.activeEntry.status = 'succeeded';
@@ -117,13 +126,13 @@ export const whisperSlice = createSlice({
 });
 
 export const {
-  addToQueue,
-  removeFromQueue,
-  setStatus,
-  setActiveEntry,
-  setQueue,
-  clearQueue,
-  clearActiveEntry,
+  // addToQueue,
+  // removeFromQueue,
+  // setStatus,
+  // setActiveEntry,
+  // setQueue,
+  // clearQueue,
+  // clearActiveEntry,
   clearStatus
 } = whisperSlice.actions;
 
