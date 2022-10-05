@@ -10,7 +10,7 @@ const handleAudioUint8Array = async (filePath: string) => {
   });
 };
 
-function AudioPlayer(filePath: string) {
+function AudioPlayer({ filePath }: { filePath: string }) {
   if (filePath) {
     handleAudioUint8Array(filePath);
   }
