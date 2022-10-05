@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ReactPlayer from 'react-player';
+
 // Components
 import { Text, Center, Grid, Stack, Card } from '@mantine/core';
 // import { RichTextEditor } from '@mantine/rte';
@@ -53,9 +53,9 @@ function EntryEditor({ active: entry }: { active: entry }) {
     // Check if the active entry has any transcriptions
     if (transcriptions.length > 0) {
       // If there are transcriptions, return the transcription editor
+
       return (
         <Stack>
-          <ReactPlayer url={entry.audio.path} controls={true} />
           {
             // Map over the vtt lines and display them
             activeTranscription.vtt &&
@@ -63,6 +63,12 @@ function EntryEditor({ active: entry }: { active: entry }) {
                 return vttLine(vtt);
               })
           }
+          {/* Audio player */}
+
+          {console.log(<source media={entry.audio.path} type={entry.audio.type} />)}
+          <audio controls>
+            <source media={entry.audio.path} type={entry.audio.type} />
+          </audio>
 
           <Center>
             <Grid>{/* <RichTextEditor formats={[]} controls={[]} value={entry.transcriptions[0]} id="rte" /> */}</Grid>

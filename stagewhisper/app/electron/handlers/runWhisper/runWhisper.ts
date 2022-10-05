@@ -56,7 +56,7 @@ export default ipcMain.handle(
     else if (task === 'translate') inputArray.push('--task', 'translate');
 
     // If the language is defined, add the language flag
-    if (language) inputArray.push('--language', language);
+    if (language && language !== 'unknown') inputArray.push('--language', language);
 
     // If the model is defined, add the model flag
     if (model) inputArray.push('--model', model);

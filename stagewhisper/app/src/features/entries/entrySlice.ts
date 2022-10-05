@@ -5,7 +5,7 @@ import { RootState } from '../../redux/store';
 // This holds the state of the transcriptions and will be updated by electron/node processes
 
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RunWhisperResponse } from '../../../electron/channels';
+import { RunWhisperResponse } from './../../../electron/types/channels';
 import { WhisperArgs } from '../../../electron/types/whisperTypes';
 
 export interface entryState {
