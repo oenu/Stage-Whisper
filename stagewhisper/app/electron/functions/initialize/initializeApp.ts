@@ -1,12 +1,12 @@
-import { entry } from '../../types/types';
+// import { entry } from '../../types/types';
 // Initialize the app with the data folder
 
 import {
   // copyFileSync,
   existsSync,
   mkdirSync,
-  readdirSync,
-  readFileSync,
+  // readdirSync,
+  // readFileSync,
   writeFileSync
 } from 'fs';
 import { join } from 'path';
@@ -69,8 +69,8 @@ export const initializeApp = async (): Promise<void> => {
   // Get settings from preferences file for first run
   // const settings: appConfigType = JSON.parse(readFileSync(join(storePath, 'app_preferences.json')).toString());
   console.debug('init: Getting settings from preferences file');
-  const settingsRaw = readFileSync(join(storePath, 'app_preferences.json'));
-  const settings = (await JSON.parse(settingsRaw.toString())) as appConfigType;
+  // const settingsRaw = readFileSync(join(storePath, 'app_preferences.json'));
+  // const settings = (await JSON.parse(settingsRaw.toString())) as appConfigType;
 
   // Check if the data folder contains any entries
   // if (readdirSync(join(dataPath)).length == 0 && settings.firstRun) {
