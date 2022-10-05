@@ -16,23 +16,24 @@ function Entries() {
   // Get All Entries
   const entries = useAppSelector(selectEntries);
 
-  // Get Active Transcription (if it exists)
+  // Get Active Entry (if it exists)
   const activeId = useAppSelector(selectActiveEntry);
 
-  const transcriptionCards = entries.map((entry) => {
+  const entryCards = entries.map((entry) => {
     return <EntryCard key={entry.config.uuid} entry={entry} />;
   });
 
-  console.log('Active Entry ID: ' + activeId);
+  // If there is an active entry, display the entry editor
   if (activeId === null) {
     return (
-      <Stack>
-        <Center>
-          <Stack spacing="md">{transcriptionCards}</Stack>
-        </Center>
-      </Stack>
+      <Center>
+        <Stack style={{ width: '100%', maxWidth: 1100 }} spacing="md">
+          {entryCards}
+        </Stack>
+      </Center>
     );
   } else {
+    // If there is no active entry, display the entries list
     return <EntryEditor active={entries.filter((entry) => entry.config.uuid === activeId)[0]} />;
   }
 }

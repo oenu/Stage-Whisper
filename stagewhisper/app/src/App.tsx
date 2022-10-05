@@ -236,7 +236,8 @@ function App() {
 
             {/* Recent Transcription Section */}
             <Navbar.Section grow component={ScrollArea}>
-              {RecentTranscriptions()}
+              {/* FIXME: Disabled pending possible removal */}
+              {false && RecentTranscriptions()}
             </Navbar.Section>
             {/* Settings Section */}
             <Navbar.Section>

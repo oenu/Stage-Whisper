@@ -3,15 +3,19 @@ import {
   Button,
   ButtonVariant,
   Card,
+  Center,
   Divider,
   Grid,
   Group,
+  Loader,
   MantineColor,
   Progress,
   Stack,
   Text,
   Title
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import { IconFileDescription } from '@tabler/icons';
 import React, { useState } from 'react';
 
 // Redux
@@ -21,8 +25,8 @@ import { entry, transcriptionStatus } from '../../../../electron/types/types';
 // Localization
 
 import strings from '../../../localization';
-import { useAppDispatch } from '../../../redux/hooks';
-import { passToWhisper } from '../../whisper/whisperSlice';
+import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
+import { passToWhisper, selectTranscribingStatus } from '../../whisper/whisperSlice';
 
 //#region Component Helpers
 const progressIndicator = (active_transcript: entry['transcriptions'][0]) => {
@@ -143,9 +147,10 @@ type buttonTypes =
   | 'open' // Open the entry detail view (if it is complete)
   | 'close' // Close the entry in the editor
   | 'play' // Play the entry original audio
-  | 'stop'; // Stop the entry original audio
+  | 'stop' // Stop the entry original audio
+  | 'transcribe'; // Transcribe the entry
 
-const buttonConstructor = (buttonType: buttonTypes, buttonId: string) => {
+const buttonConstructor = (buttonType: buttonTypes, buttonEntry: entry) => {
   const dispatch = useAppDispatch();
 
   const buttonStrings = strings.util.buttons;
@@ -169,7 +174,7 @@ const buttonConstructor = (buttonType: buttonTypes, buttonId: string) => {
       dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
       label: buttonStrings?.delete || 'Delete',
       color: 'red',
-      style: 'default'
+      style: 'outline'
     },
     cancel: {
       dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
@@ -214,10 +219,10 @@ const buttonConstructor = (buttonType: buttonTypes, buttonId: string) => {
       style: 'default'
     },
     open: {
-      dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
+      dispatchAction: 'entries/setActiveEntry',
       label: buttonStrings?.open || 'Open',
-      color: 'red',
-      style: 'default'
+      color: 'primary',
+      style: 'outline'
     },
     close: {
       dispatchAction: '', // TODO: Add an action for this in the style reduxstore/dispatchAction
@@ -236,6 +241,12 @@ const buttonConstructor = (buttonType: buttonTypes, buttonId: string) => {
       label: buttonStrings?.stop || 'Stop',
       color: 'red',
       style: 'default'
+    },
+    transcribe: {
+      dispatchAction: 'whisper/passToWhisper',
+      label: buttonStrings?.transcribe || 'Transcribe',
+      color: 'green',
+      style: 'outline'
     }
   };
 
@@ -244,7 +255,7 @@ const buttonConstructor = (buttonType: buttonTypes, buttonId: string) => {
       key={buttonType}
       onClick={() => {
         if (buttons[buttonType].dispatchAction) {
-          dispatch({ type: buttons[buttonType].dispatchAction, payload: { id: buttonId } });
+          dispatch({ type: buttons[buttonType].dispatchAction, payload: buttonEntry });
         } else {
           console.log('No dispatch action for this button: ', buttonType);
         }
@@ -259,219 +270,76 @@ const buttonConstructor = (buttonType: buttonTypes, buttonId: string) => {
   );
 };
 
-const buttonBlock = (active_transcript: entry['transcriptions'][0]) => {
-  // Create a group of buttons to display based on the current state of the entry
-  const buttonList: buttonTypes[] = [];
-
-  switch (active_transcript.status) {
-    case 'idle':
-      buttonList.push('edit', 'delete', 'queue');
-      break;
-    case 'queued':
-      buttonList.push('edit', 'delete', 'cancel');
-      break;
-    case 'pending':
-      buttonList.push('edit', 'delete', 'cancel');
-      break;
-    case 'processing':
-      buttonList.push('edit', 'delete', 'pause');
-      break;
-    case 'stalled':
-      buttonList.push('edit', 'delete', 'retry');
-      break;
-    case 'error':
-      buttonList.push('edit', 'delete', 'retry');
-      break;
-    case 'paused':
-      buttonList.push('edit', 'delete', 'resume');
-      break;
-    case 'complete':
-      buttonList.push('edit', 'delete', 'download', 'open');
-      break;
-    case 'cancelled':
-      buttonList.push('edit', 'delete', 'restore');
-      break;
-    case 'deleted':
-      buttonList.push('edit', 'restore');
-      break;
-  }
-
-  // Return a list of buttons
-  return (
-    <Group position={'left'}>
-      {buttonList.map((buttonType) => buttonConstructor(buttonType, active_transcript.uuid))}
-    </Group>
-  );
-};
-
 // #endregion
 
 function TranscriptionCard({ entry }: { entry: entry }) {
+  const dispatch = useAppDispatch();
+
   // Local state for the entry card - used to show/hide the file/entry details
   const [expanded, setExpanded] = useState<string[]>([]);
-  const dispatch = useAppDispatch();
+
+  // The current active entry and transcription
+  // may not be the same as the entry passed into this component
+  const transcribing = useAppSelector(selectTranscribingStatus);
+
+  // Detect mobile view
+  const isMobile = useMediaQuery('(max-width: 600px)');
+
   const activeTranscription = entry.transcriptions.find(
     (transcription) => transcription.uuid === entry.config.activeTranscription // TODO: Implement a way to view all transcriptions not just active
   );
 
-  const CardWithTranscription = (
+  const buttons =
+    entry.transcriptions.length > 0 ? (
+      // Has transcriptions
+      <>
+        {buttonConstructor('open', entry)}
+        {buttonConstructor('delete', entry)}
+      </>
+    ) : (
+      // No transcriptions
+      <>
+        {buttonConstructor('transcribe', entry)}
+        {buttonConstructor('delete', entry)}
+      </>
+    );
+
+  const content = (
     <Card withBorder>
-      <Group>
-        <Title order={2} lineClamp={2}>
-          {entry.config.name}
-        </Title>
-      </Group>
+      <Grid grow>
+        <Grid.Col span={isMobile ? 12 : 8}>
+          <Stack justify={'center'}>
+            <Group>
+              {transcribing?.entry?.config.uuid === entry.config.uuid ? <Loader /> : <IconFileDescription size={40} />}
+              {/* Loader */}
 
-      <Title italic order={6} lineClamp={1}>
-        {entry.config.description}
-      </Title>
-      <Divider mt="xs" mb="xs" />
-
-      <Grid align={'flex-start'}>
-        <Grid.Col md={6} sm={12}>
-          {/* Column containing information about the entry */}
-          <Stack spacing="xs" justify={'space-between'} style={{ minHeight: '900' }}>
-            <Accordion multiple variant="contained" value={expanded} onChange={setExpanded}>
-              {/* StageWhisper information */}
-              <Accordion.Item value="entry">
-                <Accordion.Control>
-                  <Title order={3}>{strings.entries?.card.transcription_section_title}</Title>
-                </Accordion.Control>
-                <Accordion.Panel>
-                  {/* Transcription Completed Date  */}
-                  <Text weight={700}>
-                    {strings.entries?.card.completed_on}:{' '}
-                    {activeTranscription?.status === 'complete' ? (
-                      <Text weight={500} span>
-                        {activeTranscription.completedOn}
-                      </Text>
-                    ) : (
-                      <Text weight={500} span transform="capitalize">
-                        {strings.entries?.card.never_completed}
-                      </Text>
-                    )}
-                  </Text>
-                  {/* Transcription Model Used  */}
-                  <Text weight={700}>
-                    {strings.entries?.card.model_used}:{' '}
-                    <Text weight={500} transform="capitalize" span>
-                      {activeTranscription?.model}
-                    </Text>
-                  </Text>
-                  {/* Transcription File Length */}
-                  <Text weight={700}>
-                    Model:{' '}
-                    <Text weight={500} transform="capitalize" span>
-                      {/* {activeTranscription.} */}
-                      Disabled
-                    </Text>
-                  </Text>
-                  {/* Transcription File Location  */}
-                  <Text weight={700}>
-                    {strings.entries?.card.output_directory}:{' '}
-                    <Text weight={500} transform="capitalize" italic span>
-                      Disabled
-                    </Text>
-                  </Text>
-                </Accordion.Panel>
-              </Accordion.Item>
-
-              <Accordion.Item value="audio">
-                {/* Audio File Information */}
-                <Accordion.Control>
-                  <Title order={3}>{strings.entries?.card.audio_section_title}</Title>
-                </Accordion.Control>
-                <Accordion.Panel>
-                  {/* Audio File Name  */}
-                  <Text weight={700}>
-                    {strings.entries?.card.file_name}:{' '}
-                    <Text weight={500} transform="capitalize" span>
-                      {entry.audio.name}
-                    </Text>
-                  </Text>
-                  {/* Audio File Type  */}
-                  <Text weight={700}>
-                    {strings.entries?.card.file_type}:{' '}
-                    <Text weight={500} transform="capitalize" span>
-                      {entry.audio.type}
-                    </Text>
-                  </Text>
-                  {/* Audio File Size  */}
-                  <Text weight={700}>
-                    {strings.entries?.card.file_length}:{' '}
-                    <Text weight={500} transform="capitalize" span>
-                      {entry.audio.fileLength
-                        ? entry.audio.fileLength < 60
-                          ? `${entry.audio.fileLength} ${strings.util.time?.seconds}`
-                          : `${Math.floor(entry.audio.fileLength / 60)} ${strings.util.time?.minutes} ${
-                              entry.audio.fileLength % 60
-                            } ${strings.util.time?.seconds}`
-                        : strings.util.status?.unknown}
-                    </Text>
-                  </Text>
-                  {/* Audio File Language  */}
-                  <Text weight={700}>
-                    {strings.entries?.card.file_language}:{' '}
-                    <Text weight={500} transform="capitalize" span>
-                      {strings.getString(`languages.${entry.audio.language}`) || entry.audio.language}
-                    </Text>
-                  </Text>
-                </Accordion.Panel>
-              </Accordion.Item>
-            </Accordion>
+              {/* Title */}
+              <Stack justify={'center'}>
+                <Text style={{ textOverflow: 'ellipsis', wordBreak: 'break-all', overflow: 'hidden' }}>
+                  {entry.config.name}
+                </Text>
+                {entry.config.description && (
+                  <Title italic order={6} lineClamp={1}>
+                    {entry.config.description}
+                  </Title>
+                )}
+              </Stack>
+            </Group>
+            <Divider hidden={!isMobile} />
           </Stack>
         </Grid.Col>
-        <Grid.Col md={6} sm={12}>
-          {/* Column containing a preview of the entry */}
-          <Text italic color={'dimmed'} lineClamp={15}>
-            {activeTranscription?.vtt}
-            {/* TODO: Add a file preview generated from VTT */}
-          </Text>
+        <Divider orientation="vertical" hidden={isMobile} />
+
+        {/* Buttons */}
+        <Grid.Col span={isMobile ? 12 : 3}>
+          {/* Buttons */}
+          <Center style={{ width: '100%' }}>
+            {isMobile ? <Group>{buttons}</Group> : <Stack style={{ width: '90%' }}>{buttons}</Stack>}
+          </Center>
         </Grid.Col>
       </Grid>
-      <Divider mt="xs" mb="xs" />
-
-      {activeTranscription && buttonBlock(activeTranscription)}
-      {activeTranscription && progressIndicator(activeTranscription)}
-
-      <Text weight={700}>{strings.entries?.card.no_transcription}</Text>
-
-      <Divider mt="xs" mb="xs" />
     </Card>
   );
-
-  const CardWithoutTranscription = (
-    <Card withBorder>
-      <Group>
-        <Title order={2} lineClamp={2}>
-          {entry.config.name}
-        </Title>
-      </Group>
-
-      <Title italic order={6} lineClamp={1}>
-        {entry.config.description}
-      </Title>
-      <Divider mt="xs" mb="xs" />
-      <Group>
-        <Button
-          variant="default"
-          onClick={() => {
-            dispatch(passToWhisper({ entry })); // TODO: Replace with add to queue
-            //TODO: Add a way to select a model to use / other options
-          }}
-        >
-          {strings.entries?.buttons.add_to_queue}
-        </Button>
-
-        {buttonConstructor('delete', entry.config.uuid)}
-      </Group>
-    </Card>
-  );
-
-  if (entry.transcriptions.length > 0) {
-    return CardWithTranscription;
-  } else {
-    return CardWithoutTranscription;
-  }
+  return content;
 }
 export default TranscriptionCard;

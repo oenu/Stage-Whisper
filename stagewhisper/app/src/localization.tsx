@@ -43,7 +43,8 @@ export const strings = new LocalizedStrings(
 
           // Queue Actions
           queue: 'Queue',
-          download: 'Download'
+          download: 'Download',
+          transcribe: 'Transcribe'
         },
         time: {
           seconds: 'seconds',
@@ -199,6 +200,7 @@ export const strings = new LocalizedStrings(
         title: 'Entries', // Title of the page
         recent_transcriptions: 'Recent entries', // Title of the recent entries section
         buttons: {
+          transcribe: 'Transcribe', // Button to transcribe a new file
           re_transcribe: 'Re-Transcribe',
           add_to_queue: 'Add to Queue'
         },
