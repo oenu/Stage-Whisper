@@ -20,7 +20,7 @@ export type inputState = {
   audioValid: boolean;
 
   // This is the language of the new entry audio file
-  language: WhisperArgs['language'];
+  language: WhisperArgs['language'] | undefined;
   languageValid: boolean;
 
   // This is the model of the new entry audio file
@@ -53,7 +53,7 @@ const initialState: inputState = {
   },
   audioValid: false,
 
-  language: 'English',
+  language: undefined,
   languageValid: false,
 
   model: 'base',
