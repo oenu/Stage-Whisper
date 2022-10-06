@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 // Components
-import { Button, Card, Center, Code, Divider, Group, Loader, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Center, Code, Divider, Group, Loader, Progress, Stack, Text, Title } from '@mantine/core';
 // import { RichTextEditor } from '@mantine/rte';
 
 // Types
@@ -18,7 +18,8 @@ import { Howl } from 'howler';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from 'react-router-dom';
 import { useAppSelector } from '../../redux/hooks';
-import { selectEntries } from './entrySlice';
+import { selectCurrentlyPlaying, selectEntries, setAudioPlaying } from './entrySlice';
+import { IconPlayerPause, IconPlayerPlay } from '@tabler/icons';
 
 // Convert an internal audio path to a url that can be used by howler
 const filePathToURL = async (filePath: string): Promise<string> => {
@@ -49,35 +50,57 @@ type formattedVTTLine = {
 // Construct Audio Player -- Required as will need to refresh with new audio player
 function AudioControls(audioPlayer: Howl) {
   console.log('AudioControls: Constructing New Audio Controls');
+  //Get currentplaying state from redux
+  //
+  // Audio Player\
 
+  let currentPlaying = false;
+  audioPlayer.on('play', () => {
+    currentPlaying = true;
+  });
+  audioPlayer.on('pause', () => {
+    currentPlaying = false;
+  });
+  audioPlayer.on('end', () => {
+    currentPlaying = false;
+  });
   return (
-    <Card shadow="md" p="lg">
-      {/* <Text>{currentLine?.text}</Text> */}
-      <Stack spacing="md">
-        {/* Button Section */}
-        <Button
-          onClick={() => {
-            console.log('Play');
-            // console.log('Current Line: ', currentLine);
-            console.log('State about to trigger: ', audioPlayer.state());
-            // console.log(audioPlayer.play());
-            console.log('About to trigger', audioPlayer);
-            audioPlayer.play();
-          }}
-        >
-          Play
-        </Button>
-        <Button onClick={() => console.log(audioPlayer)}>Log Audio Player</Button>
+    <>
+      {/* Create a button floating on the bottom right  */}
+      <Card style={{ position: 'absolute', right: '20px', bottom: '70px', zIndex: 99999 }} shadow="md" p="lg">
+        {/* <Text>{currentLine?.text}</Text> */}
+        <Stack spacing="md">
+          {/* Button Section */}
+          {/* Check if the audio is playing in which case render. Make sure to rerender the app every time the audio finishes*/}
 
-        <Button
-          onClick={() => {
-            audioPlayer.pause();
-          }}
-        >
-          Pause
-        </Button>
-      </Stack>
-    </Card>
+          <Button
+            onClick={() => {
+              console.log('Play');
+              // console.log('Current Line: ', currentLine);
+              console.log('State about to trigger: ', audioPlayer.state());
+              // console.log(audioPlayer.play());
+              console.log('About to trigger', audioPlayer);
+              if (currentPlaying) {
+                audioPlayer.unload();
+                audioPlayer.play();
+              } else {
+                audioPlayer.play();
+              }
+            }}
+          >
+            <IconPlayerPlay></IconPlayerPlay>
+          </Button>
+          <Button
+            onClick={() => {
+              audioPlayer.pause();
+            }}
+          >
+            <IconPlayerPause></IconPlayerPause>
+          </Button>
+          <Button onClick={() => console.log(audioPlayer)}>Log Audio Player</Button>
+        </Stack>
+      </Card>
+    </>
   );
 }
 
@@ -109,6 +132,9 @@ function EntryEditor() {
 
   // Audio Controls
   const [audioControls, setAudioControls] = React.useState<JSX.Element | null>(null);
+
+  const [timeOutList, setTimeOutList] = React.useState<Array<NodeJS.Timeout>>([]);
+  const [lineAudioProgress, setLineAudioProgress] = React.useState<number>(0);
 
   let content = (
     <Center>
@@ -233,14 +259,36 @@ function EntryEditor() {
 
                     <Button
                       onClick={() => {
-                        console.log('Play Line - temp');
-                        console.log('Current Line: ', line);
-                      }}
-                      disabled
-                    >
-                      Play Line - Disabled
-                    </Button>
+                        //Play audio from 1 second
+                        setCurrentLine(line);
+                        //Cancel timeouts
+                        timeOutList.forEach((timeout) => {
+                          clearTimeout(timeout);
+                        });
+                        audioPlayer.unload();
+                        audioPlayer.play();
+                        audioPlayer.seek(line.start / 1000);
+                        //stop audio after 5 seconds\\
+                        const timeout = setTimeout(() => {
+                          audioPlayer.stop();
+                          setCurrentLine(null);
+                        }, line.duration);
+                        setTimeOutList([...timeOutList, timeout]);
 
+                        //Every time 5% of the line is played update the progress bar setLineAudioProgress
+                        const interval = setInterval(() => {
+                          const currentTime = audioPlayer.seek(); //in seconds
+                          const progress = (100 * (currentTime - line.start / 1000)) / (line.duration / 1000);
+                          setLineAudioProgress(progress);
+                        }, line.duration / 100);
+                        setTimeout(() => {
+                          clearInterval(interval);
+                        }, line.duration);
+                      }}
+                      // disabled
+                    >
+                      Play Line
+                    </Button>
                     <Text>
                       {' '}
                       {String(Math.floor(line.end / 1000 / 60)).padStart(2, '0')}:
@@ -248,6 +296,7 @@ function EntryEditor() {
                     </Text>
                   </Group>
                 </Card>
+                <Progress value={currentLine == line ? lineAudioProgress : 0}></Progress>
               </Stack>
             </Card>
           );
