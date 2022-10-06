@@ -23,7 +23,7 @@ function Entries() {
     return <EntryCard key={entry.config.uuid} entry={entry} />;
   });
 
-  // If there is an active entry, display the entry editor
+  // If there is an active entry, display a list of entry cards
   if (activeId === null) {
     return (
       <Center>
@@ -33,8 +33,13 @@ function Entries() {
       </Center>
     );
   } else {
-    // If there is no active entry, display the entries list
-    return <EntryEditor active={entries.filter((entry) => entry.config.uuid === activeId)[0]} />;
+    // If there is an active entry, display the entry editor
+    const entry = entries.find((entry) => entry.config.uuid === activeId);
+    if (entry) {
+      return <EntryEditor entry={entry} />;
+    } else {
+      return <div>Entry Not Found</div>;
+    }
   }
 }
 

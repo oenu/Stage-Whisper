@@ -16,7 +16,7 @@ function AudioPlayer({ filePath }: { filePath: string }) {
     if (filePath) {
       handleAudioUint8Array(filePath);
     }
-  }, []);
+  }, [filePath]);
 
   return audioBlob ? (
     <>

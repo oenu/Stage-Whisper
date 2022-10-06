@@ -212,6 +212,7 @@ export const strings = new LocalizedStrings(
           file_type: 'Type', // This is the type of file, ie mp3, wav, etc
           file_length: 'Length', // Length of the file in seconds
           file_language: 'Language', // The language of the input audio file
+          added: 'Added', // The date the file was added to the system
 
           // Transcription
           transcription_section_title: 'Transcription', // Title of the card that shows information about the transcription

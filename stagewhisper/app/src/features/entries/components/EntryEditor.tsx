@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Components
 import { Text, Center, Grid, Stack, Card } from '@mantine/core';
@@ -8,8 +8,11 @@ import { Text, Center, Grid, Stack, Card } from '@mantine/core';
 import { entry, entryTranscription } from '../../../../electron/types/types';
 
 // Redux
-import { useAppDispatch } from '../../../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { Node } from 'subtitle';
+import AudioPlayer from './AudioPlayer';
+import { selectTranscribingStatus } from '../../whisper/whisperSlice';
+import { selectActiveEntry, selectEntries } from '../entrySlice';
 
 // Vtt Viewer Component
 // Shows a line of dialogue and the corresponding subtitle
@@ -21,7 +24,7 @@ const vttLine = (vtt: Node) => {
     const end = vtt.data.end;
 
     return (
-      <Grid style={{ width: '100%' }} key={vtt.data.start}>
+      <Grid style={{ width: '100%' }} key={`${vtt.data.start}-${vtt.data.end}`}>
         <Card style={{ width: '100%' }} withBorder>
           <Center>
             <Text>{vtt.data.text}</Text>
@@ -38,60 +41,55 @@ const vttLine = (vtt: Node) => {
 };
 
 // This is a component that will be used to display the transcription editor when an entry is selected
-function EntryEditor({ active: entry }: { active: entry }) {
-  // Redux
-  const dispatch = useAppDispatch();
+function EntryEditor({ entry }: { entry: entry }) {
+  // If the entry has a transcription
+  if (entry?.transcriptions.length > 0) {
+    // Select the most recent transcription //FIXME: This should eventually be a selector
+    const transcription = entry.transcriptions.sort((a, b) => {
+      return b.completedOn - a.completedOn;
+    })[0];
 
-  // Get transcriptions for the active entry
-  const transcriptions = entry.transcriptions;
-
-  // Set local state for the active transcription - ie. Which transcription is currently being edited on the active entry
-  const [activeTranscription, setActiveTranscription] = useState<entryTranscription>(transcriptions[0] || { text: '' });
-
-  // Check if an entry is selected
-  if (entry) {
-    // Check if the active entry has any transcriptions
-    if (transcriptions.length > 0) {
-      // If there are transcriptions, return the transcription editor
-
-      return (
-        <Stack>
-          {
-            // Map over the vtt lines and display them
-            activeTranscription.vtt &&
-              activeTranscription.vtt.map((vtt) => {
-                return vttLine(vtt);
-              })
-          }
-          {/* Audio player */}
-
-          {console.log(<source media={entry.audio.path} type={entry.audio.type} />)}
-          <audio controls>
-            <source media={entry.audio.path} type={entry.audio.type} />
-          </audio>
-
-          <Center>
-            <Grid>{/* <RichTextEditor formats={[]} controls={[]} value={entry.transcriptions[0]} id="rte" /> */}</Grid>
-          </Center>
-        </Stack>
-      );
-    } else {
-      // If there are no transcriptions, return a message prompting the user to add entry to the queue
+    if (transcription === undefined) {
+      // If the transcription is undefined, return an error
       return (
         <Center>
-          <h1>No transcriptions</h1>
+          <Stack style={{ width: '100%', maxWidth: 1100 }} spacing="md">
+            <Text>No Transcription Found</Text>
+          </Stack>
+        </Center>
+      );
+    } else if (!transcription.vtt) {
+      // If the transcription is missing a VTT, show error
+      return (
+        <Center>
+          <Stack style={{ width: '100%', maxWidth: 1100 }} spacing="md">
+            <Text>No VTT Found</Text>
+          </Stack>
+        </Center>
+      );
+    } else {
+      // If the transcription exists, and has a vtt, display them
+      return (
+        <Center>
+          <Stack style={{ width: '100%', maxWidth: 1100 }} spacing="md">
+            <AudioPlayer filePath={entry.audio.path} />
+            {transcription.vtt.map((vtt) => {
+              return vttLine(vtt);
+            })}
+          </Stack>
         </Center>
       );
     }
   } else {
-    // If no entry is selected redirect to either the list of entries or the home page (depending on if there are any entries)
+    // If the entry has no transcriptions, show an error
     return (
       <Center>
-        <Stack>
-          <h1> No Entry Selected </h1>
+        <Stack style={{ width: '100%', maxWidth: 1100 }} spacing="md">
+          <Text>No Transcription Found</Text>
         </Stack>
       </Center>
     );
   }
 }
+
 export default EntryEditor;
