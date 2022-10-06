@@ -18,7 +18,8 @@ import { Howl } from 'howler';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from 'react-router-dom';
 import { useAppSelector } from '../../redux/hooks';
-import { selectEntries } from './entrySlice';
+import { selectCurrentlyPlaying, selectEntries, setAudioPlaying } from './entrySlice';
+import { IconPlayerPause, IconPlayerPlay } from '@tabler/icons';
 
 // Convert an internal audio path to a url that can be used by howler
 const filePathToURL = async (filePath: string): Promise<string> => {
@@ -49,35 +50,57 @@ type formattedVTTLine = {
 // Construct Audio Player -- Required as will need to refresh with new audio player
 function AudioControls(audioPlayer: Howl) {
   console.log('AudioControls: Constructing New Audio Controls');
+  //Get currentplaying state from redux
+  //
+  // Audio Player\
 
+  let currentPlaying = false;
+  audioPlayer.on('play', () => {
+    currentPlaying = true;
+  });
+  audioPlayer.on('pause', () => {
+    currentPlaying = false;
+  });
+  audioPlayer.on('end', () => {
+    currentPlaying = false;
+  });
   return (
-    <Card shadow="md" p="lg">
-      {/* <Text>{currentLine?.text}</Text> */}
-      <Stack spacing="md">
-        {/* Button Section */}
-        <Button
-          onClick={() => {
-            console.log('Play');
-            // console.log('Current Line: ', currentLine);
-            console.log('State about to trigger: ', audioPlayer.state());
-            // console.log(audioPlayer.play());
-            console.log('About to trigger', audioPlayer);
-            audioPlayer.play();
-          }}
-        >
-          Play
-        </Button>
-        <Button onClick={() => console.log(audioPlayer)}>Log Audio Player</Button>
+    <>
+      {/* Create a button floating on the bottom right  */}
+      <Card style={{ position: 'absolute', right: '20px', bottom: '70px', zIndex: 99999 }} shadow="md" p="lg">
+        {/* <Text>{currentLine?.text}</Text> */}
+        <Stack spacing="md">
+          {/* Button Section */}
+          {/* Check if the audio is playing in which case render. Make sure to rerender the app every time the audio finishes*/}
 
-        <Button
-          onClick={() => {
-            audioPlayer.pause();
-          }}
-        >
-          Pause
-        </Button>
-      </Stack>
-    </Card>
+          <Button
+            onClick={() => {
+              console.log('Play');
+              // console.log('Current Line: ', currentLine);
+              console.log('State about to trigger: ', audioPlayer.state());
+              // console.log(audioPlayer.play());
+              console.log('About to trigger', audioPlayer);
+              if (currentPlaying) {
+                audioPlayer.unload();
+                audioPlayer.play();
+              } else {
+                audioPlayer.play();
+              }
+            }}
+          >
+            <IconPlayerPlay></IconPlayerPlay>
+          </Button>
+          <Button
+            onClick={() => {
+              audioPlayer.pause();
+            }}
+          >
+            <IconPlayerPause></IconPlayerPause>
+          </Button>
+          <Button onClick={() => console.log(audioPlayer)}>Log Audio Player</Button>
+        </Stack>
+      </Card>
+    </>
   );
 }
 
