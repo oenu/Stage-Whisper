@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 // Components
-import { Button, Card, Center, Code, Divider, Group, Loader, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Center, Code, Divider, Group, Loader, Progress, Stack, Text, Title } from '@mantine/core';
 // import { RichTextEditor } from '@mantine/rte';
 
 // Types
@@ -133,6 +133,9 @@ function EntryEditor() {
   // Audio Controls
   const [audioControls, setAudioControls] = React.useState<JSX.Element | null>(null);
 
+  const [timeOutList, setTimeOutList] = React.useState<Array<NodeJS.Timeout>>([]);
+  const [lineAudioProgress, setLineAudioProgress] = React.useState<number>(0);
+
   let content = (
     <Center>
       <Loader />
@@ -256,14 +259,36 @@ function EntryEditor() {
 
                     <Button
                       onClick={() => {
-                        console.log('Play Line - temp');
-                        console.log('Current Line: ', line);
-                      }}
-                      disabled
-                    >
-                      Play Line - Disabled
-                    </Button>
+                        //Play audio from 1 second
+                        setCurrentLine(line);
+                        //Cancel timeouts
+                        timeOutList.forEach((timeout) => {
+                          clearTimeout(timeout);
+                        });
+                        audioPlayer.unload();
+                        audioPlayer.play();
+                        audioPlayer.seek(line.start / 1000);
+                        //stop audio after 5 seconds\\
+                        const timeout = setTimeout(() => {
+                          audioPlayer.stop();
+                          setCurrentLine(null);
+                        }, line.duration);
+                        setTimeOutList([...timeOutList, timeout]);
 
+                        //Every time 5% of the line is played update the progress bar setLineAudioProgress
+                        const interval = setInterval(() => {
+                          const currentTime = audioPlayer.seek(); //in seconds
+                          const progress = (100 * (currentTime - line.start / 1000)) / (line.duration / 1000);
+                          setLineAudioProgress(progress);
+                        }, line.duration / 100);
+                        setTimeout(() => {
+                          clearInterval(interval);
+                        }, line.duration);
+                      }}
+                      // disabled
+                    >
+                      Play Line
+                    </Button>
                     <Text>
                       {' '}
                       {String(Math.floor(line.end / 1000 / 60)).padStart(2, '0')}:
@@ -271,6 +296,7 @@ function EntryEditor() {
                     </Text>
                   </Group>
                 </Card>
+                <Progress value={currentLine == line ? lineAudioProgress : 0}></Progress>
               </Stack>
             </Card>
           );
