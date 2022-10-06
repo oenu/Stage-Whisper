@@ -7,9 +7,9 @@ import { useAppSelector } from '../../redux/hooks';
 // Components
 import EntryCard from './components/EntryCard';
 import { selectActiveEntry, selectEntries } from './entrySlice';
+import EntryEditor from './components/EntryEditor';
 
 // Localization
-import EntryEditor from './components/EntryEditor';
 
 // Component for displaying entry progress / results
 function Entries() {
