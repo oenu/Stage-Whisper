@@ -85,11 +85,6 @@ function createWindow() {
     window.isMaximized() ? window.restore() : window.maximize();
   });
 
-  // // Listen for Whisper model to complete
-  // ipcMain.on(Channels.transcriptionComplete, (_event: IpcMainEvent, args: string) => {
-  //   window.webContents.send(Channels.transcriptionComplete, args);
-  // });
-
   ipcMain.on('close', () => {
     window.close();
   });
