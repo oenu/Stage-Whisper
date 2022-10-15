@@ -1,6 +1,6 @@
 // Components
 
-import { Text } from '@mantine/core';
+import { Button, Loader, Stack, Text, Title } from '@mantine/core';
 
 // import { RichTextEditor } from '@mantine/rte';
 // Types
@@ -9,9 +9,12 @@ import { Howl } from 'howler';
 import { Entry, Line, Transcription } from 'knex/types/tables';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import strings from '../../localization';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { passToWhisper, selectTranscribingStatus } from '../whisper/whisperSlice';
 import EntryTable from './components/EntryTable';
-import { selectLines, setLines } from './entrySlice';
+import { selectActiveLines, setLines } from './entrySlice';
+
 // import {  Transcription, Line }  from
 
 // Convert an internal audio path to a url that can be used by howler
@@ -89,27 +92,23 @@ function EntryEditor() {
   const { entryUUID } = useParams<{ entryUUID: string }>();
   const [entry, setEntry] = useState<Entry | null>(null);
   const [transcription, setTranscription] = useState<Transcription | null>(null);
-  const lines = useAppSelector(selectLines);
+  const transcribingStatus = useAppSelector(selectTranscribingStatus);
+  const lines = useAppSelector(selectActiveLines);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [audioPlayer, setAudioPlayer] = useState<Howl | null>(null);
-  const [audioPlaying, setAudioPlaying] = useState<boolean>(false);
-  const [audioSeek, setAudioSeek] = useState<number>(0);
 
   useEffect(() => {
     if (entryUUID) {
       GetEntry({ entryUUID }).then((entry) => {
         setEntry(entry);
         console.log('1: Entry Set');
-        console.log(entry);
         GetTranscription({ entryUUID: entry.uuid }).then((transcription) => {
           setTranscription(transcription);
           console.log('2: Transcription Set');
-          console.log(transcription);
           GetLines({ transcriptionUUID: transcription.uuid })
             .then((lines) => {
               dispatch(setLines(lines));
               console.log('3: Lines Set');
-              console.log(lines);
             })
             .then(() => {
               if (entry.audio_path) {
@@ -153,8 +152,55 @@ function EntryEditor() {
 
   if (entry && transcription && lines && audioURL && audioPlayer) {
     return <EntryTable audioPlayer={audioPlayer} />;
+  }
+
+  if (!entry) {
+    return <Text>Entry Not Found</Text>;
+  }
+
+  if (entry && transcribingStatus.entry?.uuid === entry.uuid && transcribingStatus.status === 'loading') {
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Title order={3}>Transcribing</Title>
+        <Loader variant="dots" />
+      </Stack>
+    );
+  }
+
+  if (entry && transcription) {
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Title order={3}>No Transcription Found</Title>
+        <Button
+          onClick={() => {
+            if (entry) {
+              dispatch(passToWhisper({ entry }));
+            } else {
+              console.warn("No Entry Found, can't pass to whisper");
+              // This should eventually be a modal
+            }
+          }}
+          color="violet"
+          variant="outline"
+          disabled={transcribingStatus.status === 'loading'}
+        >
+          {strings.util.buttons?.transcribe}
+        </Button>
+      </Stack>
+    );
+  }
+
+  // Fallback States if something goes wrong
+  if (!transcription) {
+    return <Text>Transcription Not Found</Text>;
+  } else if (!lines) {
+    return <Text>Lines Not Found</Text>;
+  } else if (!audioURL) {
+    return <Text>Audio URL Not Found</Text>;
+  } else if (!audioPlayer) {
+    return <Text>Audio Player Not Found</Text>;
   } else {
-    return <Text>temporary loading</Text>;
+    return <Text>Unknown Error</Text>;
   }
 }
 

@@ -30,7 +30,7 @@ function TranscriptionCard({ entry }: { entry: ReduxEntry }) {
       <>
         <Button
           onClick={() => {
-            navigate(`/entries/${entry.uuid}`);
+            console.log('export button');
           }}
           color="green"
           variant="outline"
@@ -115,17 +115,13 @@ function TranscriptionCard({ entry }: { entry: ReduxEntry }) {
       <Grid grow align={'center'}>
         <Grid.Col span={isMobile ? 12 : 8} style={{ height: '100%' }}>
           <Stack justify={'center'}>
-            <Group>
+            <Group noWrap>
               {icon}
               {/* Loader */}
 
               {/* Title */}
               <Stack>
-                <Text
-                  size={'lg'}
-                  weight={700}
-                  style={{ textOverflow: 'ellipsis', wordBreak: 'break-all', overflow: 'hidden' }}
-                >
+                <Text size={'lg'} weight={700} style={{ wordBreak: 'break-word', overflow: 'clip' }}>
                   {entry.name}
                 </Text>
                 {/* Added */}

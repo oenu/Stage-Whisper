@@ -6,13 +6,14 @@ import { DataTable } from 'mantine-datatable';
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { selectAudioPadding } from '../../settings/settingsSlice';
-import { selectLines, setLines } from '../entrySlice';
+import { fetchLineAsync, selectActiveLines } from '../entrySlice';
 
 function EntryTable({ audioPlayer }: { audioPlayer: Howl }) {
   // Data Table States
   // const [pageSize, setPageSize] = useState(20);
-  const pageSize = 20;
+  const pageSize = 10;
   const [page, setPage] = useState(1);
+  const [records, setRecords] = useState<Line[]>([]);
 
   // Audio
   const [currentLine, setCurrentLine] = useState<Line | null>(null);
@@ -27,28 +28,35 @@ function EntryTable({ audioPlayer }: { audioPlayer: Howl }) {
 
   // Fetch Lines from redux store
   const dispatch = useAppDispatch();
-  const lines = useAppSelector(selectLines);
-  const [localLines, setLocalLines] = useState<Line[]>([]);
+  const lines = useAppSelector(selectActiveLines);
+
+  const [ready, setReady] = useState(false);
 
   // Generate a data table using Mantine-DataTable
   useEffect(() => {
-    // Get the lines from the store
-    // Set the lines in local state for data table
-    setLocalLines(lines);
+    setReady(false);
+
+    setReady(true);
   }, [lines]);
 
-  if (localLines) {
+  useEffect(() => {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize;
+    setRecords(lines.slice(from, to));
+  }, [page, lines, pageSize]);
+
+  const tableGen = () => {
     return (
       <Box>
         <DataTable
           withBorder
           withColumnBorders
           striped
-          totalRecords={localLines.length}
+          totalRecords={lines.length}
           recordsPerPage={pageSize}
           page={page}
           onPageChange={(p) => setPage(p)}
-          records={localLines} // {}type formattedVTTLine = {key: string;start: number;end: number;duration: number;text: string;};
+          records={records} // {}type formattedVTTLine = {key: string;start: number;end: number;duration: number;text: string;};
           columns={[
             // Play button column
             {
@@ -163,16 +171,7 @@ function EntryTable({ audioPlayer }: { audioPlayer: Howl }) {
                                   text: editText
                                 }
                               }).then((res) => {
-                                console.log(res);
-                                dispatch(
-                                  setLines({
-                                    ...lines,
-                                    [line.index]: {
-                                      ...line,
-                                      text: editText
-                                    }
-                                  })
-                                );
+                                dispatch(fetchLineAsync({ line }));
                                 setEditingLine(null);
                                 setEditText('');
                               });
@@ -200,19 +199,11 @@ function EntryTable({ audioPlayer }: { audioPlayer: Howl }) {
                           <ActionIcon
                             color="red"
                             onClick={() => {
+                              setEditingLine(null);
+                              setEditText('');
                               console.log('resetting edits...');
                               window.Main.RESTORE_LINE({ line }).then((res) => {
-                                console.log(res);
-                                console.log(line);
-
-                                dispatch(
-                                  setLines({
-                                    ...lines,
-                                    [line.index]: {
-                                      ...res
-                                    }
-                                  })
-                                );
+                                dispatch(fetchLineAsync({ line }));
                               });
                             }}
                           >
@@ -247,8 +238,12 @@ function EntryTable({ audioPlayer }: { audioPlayer: Howl }) {
         />
       </Box>
     );
+  };
+
+  if (ready) {
+    return <>{tableGen()}</>;
   } else {
-    return <Text>No transcription selected</Text>;
+    return <Text>Not Ready...</Text>;
   }
 }
 
