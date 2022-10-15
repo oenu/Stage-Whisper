@@ -76,9 +76,11 @@ ipcMain.handle(QUERY.GET_ENTRY_COUNT, async (): QueryReturn[QUERY.GET_ENTRY_COUN
 
 // Get Line
 ipcMain.handle(QUERY.GET_LINE, async (_event: invoke, args: QueryArgs[QUERY.GET_LINE]): QueryReturn[QUERY.GET_LINE] => {
-  const { lineUUID } = args;
-  const line = (await db('lines').where({ uuid: lineUUID }).first()) as Line;
-  return line;
+  const { index, transcriptionUUID } = args;
+  const line = (await db('lines').where({ index, transcription: transcriptionUUID })) as Line[];
+
+  // Return the line with the highest version number
+  return line.reduce((prev, curr) => (prev.version > curr.version ? prev : curr));
 });
 
 // Get Line Count
@@ -153,8 +155,6 @@ ipcMain.handle(
       .orderBy('index', 'asc')
       .orderBy('version', 'desc')) as Line[];
 
-    console.log('line length:' + lines.length);
-
     // Get the line at each index which has the highest version
     const latestLines = lines.reduce((acc: Line[], line: Line) => {
       if (acc.length === 0) {
@@ -173,8 +173,6 @@ ipcMain.handle(
       return acc;
     }, []);
 
-    console.log('latest line length:' + latestLines.length);
-
     // Remove lines that have been deleted
     const filteredLinesWithoutDeleted = latestLines.filter((line) => {
       if (line.deleted) {
@@ -184,7 +182,6 @@ ipcMain.handle(
       }
     });
 
-    console.log('filtered line length:' + filteredLinesWithoutDeleted.length);
     return filteredLinesWithoutDeleted;
   }
 );
@@ -267,6 +264,23 @@ ipcMain.handle(
         return acc;
       }
     }, dbLines[0]);
+
+    // Remove lines with version number higher than the lowest version number
+    const linesToDelete = dbLines.filter((line) => {
+      if (line.version > lowestVersionLine.version) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    // Delete the lines
+    await db('lines')
+      .whereIn(
+        'uuid',
+        linesToDelete.map((line) => line.uuid)
+      )
+      .del();
 
     // Set the deleted flag to false
     const updatedLine = {
