@@ -5,10 +5,9 @@ import { RootState } from '../../redux/store';
 
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { WhisperArgs } from '../../../electron/types/whisperTypes';
 import { Entry, Line, Transcription } from 'knex/types/tables';
 import { RunWhisperResponse } from '../../../electron/handlers/runWhisper/runWhisper';
-import { QUERY, QueryArgs, QueryReturn } from '../../../electron/types/queries';
+import { WhisperArgs } from '../../../electron/types/whisperTypes';
 
 export interface ReduxEntry extends Entry {
   transcriptions: Transcription[];

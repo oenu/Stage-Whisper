@@ -1,6 +1,6 @@
 // Components
 
-import { Button, Loader, Space, Stack, Text, Title } from '@mantine/core';
+import { Button, Loader, Stack, Title } from '@mantine/core';
 
 // import { RichTextEditor } from '@mantine/rte';
 // Types

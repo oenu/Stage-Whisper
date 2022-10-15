@@ -1,5 +1,5 @@
-import { Text, Box, ActionIcon, Textarea, Group } from '@mantine/core';
-import { IconPlayerStop, IconPlayerPlay, IconCheck, IconX, IconArrowBack, IconEdit, IconTrash } from '@tabler/icons';
+import { ActionIcon, Box, Group, Text, Textarea } from '@mantine/core';
+import { IconArrowBack, IconCheck, IconEdit, IconPlayerPlay, IconPlayerStop, IconTrash, IconX } from '@tabler/icons';
 import { Howl } from 'howler';
 import { Entry, Line } from 'knex/types/tables';
 import { DataTable } from 'mantine-datatable';
@@ -18,7 +18,7 @@ function EntryTable({ audioPlayer, entry }: { audioPlayer: Howl; entry: Entry })
   // Audio
   const [currentLine, setCurrentLine] = useState<Line | null>(null);
   const [timeOutList, setTimeOutList] = useState<Array<NodeJS.Timeout>>([]);
-  const [lineAudioProgress, setLineAudioProgress] = useState<number>(0);
+  // const [lineAudioProgress, setLineAudioProgress] = useState<number>(0);
   const [intervalNode, setIntervalNode] = useState<NodeJS.Timeout | null>(null);
   const audioPadding = useAppSelector(selectAudioPadding);
 
@@ -96,16 +96,16 @@ function EntryTable({ audioPlayer, entry }: { audioPlayer: Howl; entry: Entry })
                         // Cancel intervals
                         if (intervalNode) clearInterval(intervalNode);
 
-                        setLineAudioProgress(0);
+                        // setLineAudioProgress(0);
                         audioPlayer.unload();
                         audioPlayer.play();
                         audioPlayer.seek(computedLineStart);
 
                         //Every time 5% of the line is played update the progress bar setLineAudioProgress
                         const interval = setInterval(() => {
-                          const currentTime = audioPlayer.seek(); //in seconds
-                          const progress = (currentTime - computedLineStart) / (computedLineEnd - computedLineStart);
-                          setLineAudioProgress(progress * 100);
+                          // const currentTime = audioPlayer.seek(); //in seconds
+                          // const progress = (currentTime - computedLineStart) / (computedLineEnd - computedLineStart);
+                          // setLineAudioProgress(progress * 100);
                         }, 50);
                         setIntervalNode(interval);
 
@@ -174,7 +174,7 @@ function EntryTable({ audioPlayer, entry }: { audioPlayer: Howl; entry: Entry })
                                   ...line,
                                   text: editText
                                 }
-                              }).then((res) => {
+                              }).then(() => {
                                 dispatch(fetchLineAsync({ line }));
                                 setEditingLine(null);
                                 setEditText('');
@@ -206,7 +206,7 @@ function EntryTable({ audioPlayer, entry }: { audioPlayer: Howl; entry: Entry })
                               setEditingLine(null);
                               setEditText('');
                               console.log('resetting edits...');
-                              window.Main.RESTORE_LINE({ line }).then((res) => {
+                              window.Main.RESTORE_LINE({ line }).then(() => {
                                 dispatch(fetchLineAsync({ line }));
                               });
                             }}
