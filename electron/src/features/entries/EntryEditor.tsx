@@ -1,6 +1,6 @@
 // Components
 
-import { Button, Loader, Stack, Text, Title } from '@mantine/core';
+import { Button, Loader, Space, Stack, Text, Title } from '@mantine/core';
 
 // import { RichTextEditor } from '@mantine/rte';
 // Types
@@ -96,48 +96,60 @@ function EntryEditor() {
   const lines = useAppSelector(selectActiveLines);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [audioPlayer, setAudioPlayer] = useState<Howl | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (entryUUID) {
-      GetEntry({ entryUUID }).then((entry) => {
-        setEntry(entry);
-        console.log('1: Entry Set');
-        GetTranscription({ entryUUID: entry.uuid }).then((transcription) => {
-          setTranscription(transcription);
-          console.log('2: Transcription Set');
-          GetLines({ transcriptionUUID: transcription.uuid })
-            .then((lines) => {
-              dispatch(setLines(lines));
-              console.log('3: Lines Set');
-            })
-            .then(() => {
-              if (entry.audio_path) {
-                filePathToURL(entry.audio_path).then((url) => {
-                  setAudioURL(url);
-                  console.log('4: Audio URL Set');
+      setLoading(true);
+    }
+  }, [entryUUID]);
 
-                  const newAudioPlayer = new Howl({
-                    src: [url],
-                    html5: true,
-                    format: ['mp3'],
-                    preload: true
+  useEffect(() => {
+    if (entryUUID) {
+      GetEntry({ entryUUID })
+        .then((entry) => {
+          setEntry(entry);
+          console.log('1: Entry Set');
+          GetTranscription({ entryUUID: entry.uuid }).then((transcription) => {
+            setTranscription(transcription);
+            console.log('2: Transcription Set');
+            GetLines({ transcriptionUUID: transcription.uuid })
+              .then((lines) => {
+                dispatch(setLines(lines));
+                console.log('3: Lines Set');
+              })
+              .then(() => {
+                if (entry.audio_path) {
+                  filePathToURL(entry.audio_path).then((url) => {
+                    setAudioURL(url);
+                    console.log('4: Audio URL Set');
+
+                    const newAudioPlayer = new Howl({
+                      src: [url],
+                      html5: true,
+                      format: ['mp3'],
+                      preload: true
+                    });
+                    console.log('5: Audio Player Set');
+                    newAudioPlayer.on('load', () => {
+                      console.log('6: Audio Player Loaded');
+                      setAudioPlayer(newAudioPlayer);
+                    });
+                    newAudioPlayer.once('loaderror', (_id, error) => {
+                      console.log('Audio Player Load Error ', error);
+                    });
                   });
-                  console.log('5: Audio Player Set');
-                  newAudioPlayer.on('load', () => {
-                    console.log('6: Audio Player Loaded');
-                    setAudioPlayer(newAudioPlayer);
-                  });
-                  newAudioPlayer.once('loaderror', (_id, error) => {
-                    console.log('Audio Player Load Error ', error);
-                  });
-                });
-              } else {
-                console.log('No Audio Path Found');
-                throw new Error('No Audio Path Found');
-              }
-            });
+                } else {
+                  console.log('No Audio Path Found');
+                  throw new Error('No Audio Path Found');
+                }
+              });
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoading(false);
         });
-      });
     }
   }, [entryUUID]);
 
@@ -154,10 +166,6 @@ function EntryEditor() {
     return <EntryTable entry={entry} audioPlayer={audioPlayer} />;
   }
 
-  if (!entry) {
-    return <Text>Entry Not Found</Text>;
-  }
-
   if (entry && transcribingStatus.entry?.uuid === entry.uuid && transcribingStatus.status === 'loading') {
     return (
       <Stack align={'center'} justify="center" style={{ height: '80%' }}>
@@ -167,7 +175,7 @@ function EntryEditor() {
     );
   }
 
-  if (entry && transcription) {
+  if (entry && !transcription) {
     return (
       <Stack align={'center'} justify="center" style={{ height: '80%' }}>
         <Title order={3}>No Transcription Found</Title>
@@ -191,16 +199,42 @@ function EntryEditor() {
   }
 
   // Fallback States if something goes wrong
-  if (!transcription) {
-    return <Text>Transcription Not Found</Text>;
-  } else if (!lines) {
-    return <Text>Lines Not Found</Text>;
-  } else if (!audioURL) {
-    return <Text>Audio URL Not Found</Text>;
-  } else if (!audioPlayer) {
-    return <Text>Audio Player Not Found</Text>;
+  if (!entry && !loading) {
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Title order={3}>No Entry Found</Title>
+      </Stack>
+    );
+  } else if (!transcription && !loading) {
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Title order={3}>Transcription Not Found</Title>
+      </Stack>
+    );
+  } else if (!lines && !loading) {
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Title order={3}>Lines Not Found</Title>
+      </Stack>
+    );
+  } else if (!audioURL && !loading) {
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Title order={3}>Audio URL Not Found</Title>
+      </Stack>
+    );
+  } else if (!audioPlayer && !loading) {
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Title order={3}>Audio Player Not Found</Title>
+      </Stack>
+    );
   } else {
-    return <Text>Unknown Error</Text>;
+    return (
+      <Stack align={'center'} justify="center" style={{ height: '80%' }}>
+        <Loader variant="dots" />
+      </Stack>
+    );
   }
 }
 
