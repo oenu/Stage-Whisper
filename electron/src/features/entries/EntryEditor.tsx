@@ -151,7 +151,7 @@ function EntryEditor() {
   }, [audioPlayer]);
 
   if (entry && transcription && lines && audioURL && audioPlayer) {
-    return <EntryTable audioPlayer={audioPlayer} />;
+    return <EntryTable entry={entry} audioPlayer={audioPlayer} />;
   }
 
   if (!entry) {

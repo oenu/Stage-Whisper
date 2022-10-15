@@ -1,14 +1,14 @@
 import { Text, Box, ActionIcon, Textarea, Group } from '@mantine/core';
 import { IconPlayerStop, IconPlayerPlay, IconCheck, IconX, IconArrowBack, IconEdit, IconTrash } from '@tabler/icons';
 import { Howl } from 'howler';
-import { Line } from 'knex/types/tables';
+import { Entry, Line } from 'knex/types/tables';
 import { DataTable } from 'mantine-datatable';
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { selectAudioPadding } from '../../settings/settingsSlice';
 import { fetchLineAsync, selectActiveLines } from '../entrySlice';
 
-function EntryTable({ audioPlayer }: { audioPlayer: Howl }) {
+function EntryTable({ audioPlayer, entry }: { audioPlayer: Howl; entry: Entry }) {
   // Data Table States
   // const [pageSize, setPageSize] = useState(20);
   const pageSize = 10;
@@ -35,9 +35,13 @@ function EntryTable({ audioPlayer }: { audioPlayer: Howl }) {
   // Generate a data table using Mantine-DataTable
   useEffect(() => {
     setReady(false);
-
     setReady(true);
   }, [lines]);
+
+  useEffect(() => {
+    // Reset page when entries change
+    setPage(1);
+  }, [entry]);
 
   useEffect(() => {
     const from = (page - 1) * pageSize;
