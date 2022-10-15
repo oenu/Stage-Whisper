@@ -20,7 +20,6 @@ import asap_italic from './assets/fonts/asap/asap-v24-latin-ext_latin-italic.wof
 import asap from './assets/fonts/asap/asap-v24-latin-ext_latin-regular.woff2';
 
 function StyleOverride() {
-  console.log('StyleOverride: Setting fonts...');
   return (
     <Global
       styles={[

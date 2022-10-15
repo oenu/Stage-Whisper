@@ -201,6 +201,7 @@ ipcMain.handle(
   ): QueryReturn[QUERY.GET_ALL_TRANSCRIPTIONS_FOR_ENTRY] => {
     const { entryUUID } = args;
     const transcriptions = (await db('transcriptions').where({ entry: entryUUID })) as Transcription[];
+
     return transcriptions;
   }
 );

@@ -112,10 +112,8 @@ export const entrySlice = createSlice({
     });
     builder.addCase(getLocalFiles.fulfilled, (state, action) => {
       console.log('Getting Local Files: Fulfilled');
-      console.log('action.payload', action.payload);
       if (action.payload.entries) {
         state.entries = action.payload.entries;
-        console.log('state.entries', state.entries);
       }
       state.get_files_status = 'succeeded';
     });
@@ -130,7 +128,7 @@ export const entrySlice = createSlice({
     });
     builder.addCase(fetchLineAsync.fulfilled, (state, action) => {
       console.log('fetchLine: Fulfilled');
-      console.log('action.payload', action.payload);
+
       const { line } = action.payload;
       const lineIndex = state.activeLines.findIndex((l) => l.index === line.index);
       if (lineIndex !== -1) {

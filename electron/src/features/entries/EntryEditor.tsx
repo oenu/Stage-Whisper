@@ -64,6 +64,7 @@ async function GetTranscription({
     }
   } else if (entryUUID) {
     const result = (await window.Main.GET_ALL_TRANSCRIPTIONS_FOR_ENTRY({ entryUUID })) as Transcription[];
+
     if (!result) {
       console.log('No Transcription Found');
       throw new Error('No Transcription Found');
@@ -99,51 +100,57 @@ function EntryEditor() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (entryUUID) {
-      setLoading(true);
-    }
-  }, [entryUUID]);
+    setTranscription(null);
+    setLines([]);
+    setAudioPlayer(null);
+    setAudioURL(null);
+    setEntry(null);
 
-  useEffect(() => {
+    setLoading(true);
+
     if (entryUUID) {
       GetEntry({ entryUUID })
         .then((entry) => {
           setEntry(entry);
-          console.log('1: Entry Set');
+          // console.log('1: Entry Set');
           GetTranscription({ entryUUID: entry.uuid }).then((transcription) => {
-            setTranscription(transcription);
-            console.log('2: Transcription Set');
-            GetLines({ transcriptionUUID: transcription.uuid })
-              .then((lines) => {
-                dispatch(setLines(lines));
-                console.log('3: Lines Set');
-              })
-              .then(() => {
-                if (entry.audio_path) {
-                  filePathToURL(entry.audio_path).then((url) => {
-                    setAudioURL(url);
-                    console.log('4: Audio URL Set');
+            if (transcription) {
+              setTranscription(transcription);
+              // console.log('2: Transcription Set');
+              GetLines({ transcriptionUUID: transcription.uuid })
+                .then((lines) => {
+                  dispatch(setLines(lines));
+                  // console.log('3: Lines Set');
+                })
+                .then(() => {
+                  if (entry.audio_path) {
+                    filePathToURL(entry.audio_path).then((url) => {
+                      setAudioURL(url);
+                      // console.log('4: Audio URL Set');
 
-                    const newAudioPlayer = new Howl({
-                      src: [url],
-                      html5: true,
-                      format: ['mp3'],
-                      preload: true
+                      const newAudioPlayer = new Howl({
+                        src: [url],
+                        html5: true,
+                        format: ['mp3'],
+                        preload: true
+                      });
+                      // console.log('5: Audio Player Set');
+                      newAudioPlayer.on('load', () => {
+                        // console.log('6: Audio Player Loaded');
+                        setAudioPlayer(newAudioPlayer);
+                      });
+                      newAudioPlayer.once('loaderror', (_id, error) => {
+                        console.log('Audio Player Load Error ', error);
+                      });
                     });
-                    console.log('5: Audio Player Set');
-                    newAudioPlayer.on('load', () => {
-                      console.log('6: Audio Player Loaded');
-                      setAudioPlayer(newAudioPlayer);
-                    });
-                    newAudioPlayer.once('loaderror', (_id, error) => {
-                      console.log('Audio Player Load Error ', error);
-                    });
-                  });
-                } else {
-                  console.log('No Audio Path Found');
-                  throw new Error('No Audio Path Found');
-                }
-              });
+                  } else {
+                    console.log('No Audio Path Found');
+                    throw new Error('No Audio Path Found');
+                  }
+                });
+            } else {
+              console.log("No Transcription Found, can't load lines!");
+            }
           });
         })
         .catch((error) => {

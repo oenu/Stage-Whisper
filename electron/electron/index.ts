@@ -10,8 +10,9 @@ import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import isDev from 'electron-is-dev';
 import { existsSync, readFile } from 'fs';
 import { Channels, OpenDirectoryDialogResponse } from './types/channels';
-
 import { initializeApp } from './app/initializeApp';
+
+// Icons
 
 // Electron Defaults
 const height = 600;
@@ -50,6 +51,14 @@ function createWindow() {
     webPreferences: {
       preload: join(__dirname, 'preload.js')
     }
+
+    // Check if on a mac or other OS
+    // icon: (() => {
+    //   if (process.platform === 'darwin') {
+    //     return macIcon;
+    //   } else {
+    //   }
+    // })()
   });
 
   const port = process.env.PORT || 3000;

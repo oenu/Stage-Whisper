@@ -32,7 +32,7 @@ function TranscriptionCard({ entry }: { entry: ReduxEntry }) {
           onClick={() => {
             console.log('export button');
           }}
-          color="green"
+          color="green.6"
           variant="outline"
         >
           {strings.util.buttons?.export}
