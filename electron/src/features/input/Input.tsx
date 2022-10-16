@@ -25,11 +25,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import strings from '../../localization';
-import { getLocalFiles } from '../entries/entrySlice';
+import { getLocalFiles, selectEntries } from '../entries/entrySlice';
 import About, { AboutUtilityType } from './components/about/About';
 import { WhisperArgs } from '../../../electron/types/whisperTypes';
 import SimpleInput from './components/audio/SimpleInput';
 import { Entry } from 'knex/types/tables';
+import { passToWhisper, selectTranscribingStatus } from '../whisper/whisperSlice';
 
 function Input() {
   // Redux
@@ -41,8 +42,13 @@ function Input() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 600px)');
 
+  // Temporary state for created entry
+  const [createdEntry, setCreatedEntry] = React.useState<Entry | null>(null);
+
   // Modal
   const { submitting, error, submitted } = useAppSelector(selectSubmittingState);
+
+  const transcribing = useAppSelector(selectTranscribingStatus);
 
   // On page load reset inputs to default
   React.useEffect(() => {
@@ -78,6 +84,7 @@ function Input() {
         .then((result) => {
           // If the submission was successful
           if (result) {
+            setCreatedEntry(result.entry);
             console.log('New entry created', result, 'Showing modal');
             dispatch(setSubmitting(false));
             dispatch(setSubmitted(true));
@@ -104,44 +111,57 @@ function Input() {
           centered
           opened={submitted}
           fullScreen={isMobile}
-          onClose={() => dispatch(resetInput())}
+          onClose={() => {
+            setCreatedEntry(null);
+            dispatch(resetInput());
+          }}
         >
           <Stack>
             <Alert color="green" title={`${strings.input?.modal?.success_add}`}>
-              <SimpleGrid cols={2} spacing={10}>
+              <Stack>
+                <Button
+                  variant="filled"
+                  color={'violet'}
+                  disabled={createdEntry === null || transcribing.status !== 'idle'}
+                  onClick={() => {
+                    if (createdEntry && transcribing.status === 'idle') {
+                      dispatch(
+                        passToWhisper({
+                          entry: createdEntry
+                        })
+                      );
+                      setCreatedEntry(null);
+                      dispatch(resetInput());
+                    } else {
+                      if (!createdEntry) console.log('No entry, cannot pass to whisper');
+                      if (transcribing.status !== 'idle') console.log('Transcribing already in progress');
+                    }
+                  }}
+                >
+                  Begin Transcription
+                </Button>
+
                 {/* Add another file  */}
-                <Button onClick={() => dispatch(resetInput())} variant="default">
+                <Button onClick={() => dispatch(resetInput())} variant="filled" color={'green'}>
                   {strings.input?.modal?.add_another}
                 </Button>
-                {/* View Queue */}
-                <Button
-                  disabled
-                  onClick={() => {
-                    dispatch(setSubmitted(false));
-                    dispatch(resetInput());
-                    navigate('/queue');
-                  }}
-                  variant="default"
-                >
-                  {strings.input?.modal?.view_queue}
-                </Button>
+
                 {/* View entries */}
                 <Button
                   onClick={() => {
                     dispatch(setSubmitted(false));
                     dispatch(resetInput());
+                    setCreatedEntry(null);
                     navigate('/entries');
                   }}
-                  variant="default"
+                  variant="filled"
+                  color={'blue'}
                 >
                   {strings.input?.modal?.view_entries}
                 </Button>
-                {/* Add to queue */}
-                {/* Button that goes green when the job is added, keeps modal open, user can then choose to add another file or go to entries */}
-                <Button variant="default" disabled>
-                  {strings.input?.modal?.add_queue}
-                </Button>
-              </SimpleGrid>
+              </Stack>
+              {/* Add to queue */}
+              {/* Button that goes green when the job is added, keeps modal open, user can then choose to add another file or go to entries */}
             </Alert>
           </Stack>
         </Modal>

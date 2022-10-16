@@ -30,11 +30,14 @@ function TranscriptionCard({ entry }: { entry: ReduxEntry }) {
       <>
         <Button
           onClick={() => {
-            console.log('export button');
+            // Get the latest transcription
+            const transcription = entry.transcriptions[entry.transcriptions.length - 1];
+            window.Main.exportTranscription(transcription.uuid, entry);
           }}
           color="green.6"
           variant="outline"
         >
+          Desktop
           {strings.util.buttons?.export}
         </Button>
         <Button
