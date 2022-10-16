@@ -28,7 +28,7 @@ import strings from '../../localization';
 import { getLocalFiles, selectEntries } from '../entries/entrySlice';
 import About, { AboutUtilityType } from './components/about/About';
 import { WhisperArgs } from '../../../electron/types/whisperTypes';
-import SimpleInput from './components/audio/SimpleInput';
+import SimpleInput from './SimpleInput';
 import { Entry } from 'knex/types/tables';
 import { passToWhisper, selectTranscribingStatus } from '../whisper/whisperSlice';
 
