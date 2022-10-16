@@ -1,4 +1,4 @@
-import { Alert, Button, Center, LoadingOverlay, Modal, SimpleGrid, Stack, Title } from '@mantine/core';
+import { Alert, Button, Center, LoadingOverlay, Modal, Stack, Title } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import React from 'react';
 
@@ -24,13 +24,13 @@ import {
 // Localization
 import { useNavigate } from 'react-router-dom';
 
-import strings from '../../localization';
-import { getLocalFiles, selectEntries } from '../entries/entrySlice';
-import About, { AboutUtilityType } from './components/about/About';
-import { WhisperArgs } from '../../../electron/types/whisperTypes';
-import SimpleInput from './SimpleInput';
 import { Entry } from 'knex/types/tables';
+import { WhisperArgs } from '../../../electron/types/whisperTypes';
+import strings from '../../localization';
+import { getLocalFiles } from '../entries/entrySlice';
 import { passToWhisper, selectTranscribingStatus } from '../whisper/whisperSlice';
+import About, { AboutUtilityType } from './components/about/About';
+import SimpleInput from './SimpleInput';
 
 function Input() {
   // Redux

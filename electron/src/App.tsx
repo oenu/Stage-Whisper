@@ -4,24 +4,21 @@ import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 
 // Mantine / Styling
 import {
+  Affix,
   AppShell,
   Burger,
   Divider,
-  Group,
   Header,
   Loader,
   MantineProvider,
-  MediaQuery,
   Navbar,
   NavLink,
   ScrollArea,
-  Text,
-  Image,
-  useMantineTheme,
-  MantineTheme,
   Switch,
-  Affix
+  Text,
+  useMantineTheme
 } from '@mantine/core';
+import { NotificationsProvider } from '@mantine/notifications';
 import {
   IconFileCheck,
   IconFileDescription,
@@ -33,7 +30,6 @@ import {
   IconSettings,
   IconSun
 } from '@tabler/icons';
-import { NotificationsProvider } from '@mantine/notifications';
 import Styling from './styling';
 
 // Logos / Icons
@@ -46,10 +42,9 @@ import Styling from './styling';
 import strings from './localization';
 
 // Debug
-import Debug from './features/debug/Debug';
 
 // Redux
-import { useAppDispatch, useAppSelector } from './redux/hooks';
+import { useMediaQuery } from '@mantine/hooks';
 import { selectBurgerOpen, setBurgerOpen } from './appSlice';
 import {
   getLocalFiles,
@@ -60,7 +55,7 @@ import {
 } from './features/entries/entrySlice';
 import { selectDarkMode, selectDisplayLanguage, toggleDarkMode } from './features/settings/settingsSlice';
 import { selectTranscribingStatus } from './features/whisper/whisperSlice';
-import { useMediaQuery } from '@mantine/hooks';
+import { useAppDispatch, useAppSelector } from './redux/hooks';
 
 // Entries list - Shows all entries
 function EntryList({ darkMode }: { darkMode: boolean }) {
@@ -324,6 +319,8 @@ function App() {
 
           <Affix position={{ bottom: 20, right: 20 }}>
             <Switch
+              radius={'md'}
+              size={'md'}
               color={theme.colorScheme === 'dark' ? 'gray' : 'dark'}
               onLabel={<IconMoonStars size={18} color={'#F6763A'} />}
               offLabel={<IconSun size={18} color={'#F56826'} />}

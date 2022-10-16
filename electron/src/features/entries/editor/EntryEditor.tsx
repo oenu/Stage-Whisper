@@ -170,7 +170,14 @@ function EntryEditor() {
   }, [audioPlayer]);
 
   if (entry && transcription && lines && audioURL && audioPlayer) {
-    return <EntryTable entry={entry} audioPlayer={audioPlayer} />;
+    return (
+      <>
+        <Stack>
+          <Title order={3}>Transcription</Title>
+          <EntryTable entry={entry} audioPlayer={audioPlayer} />
+        </Stack>
+      </>
+    );
   }
 
   if (entry && transcribingStatus.entry?.uuid === entry.uuid && transcribingStatus.status === 'loading') {

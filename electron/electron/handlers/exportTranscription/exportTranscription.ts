@@ -4,7 +4,7 @@ import { Channels } from '../../types/channels';
 
 import db from '../../database/database';
 import { NodeList, stringifySync } from 'subtitle';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 
 export type ExportTranscriptionResponse = {
   outputDir: string;
@@ -104,40 +104,33 @@ export default ipcMain.handle(
       if (!outputDir) throw new Error('No output directory provided');
 
       // Check if a file with the same name already exists
+      const folderName = `${entry.name}`;
       const fileName = `${entry.name}.vtt`;
-      const filePath = `${outputDir}/${fileName}`;
 
       try {
-        if (existsSync(filePath)) {
-          console.log('File name clash detected!, renaming file...');
+        if (existsSync(`${outputDir}/${folderName}`)) {
+          console.log('File name clash detected!, renaming folder...');
           // File already exists, add a number to the end of the file name and try again
           let i = 1;
-          while (existsSync(`${outputDir}/${entry.name} (${i}).vtt`)) {
-            console.log(`File name clash detected again!, renaming file with suffix (${i})!...`);
+          while (existsSync(`${outputDir}/${folderName} (${i})`)) {
+            console.log(`File name clash detected again!, renaming folder with suffix (${i})!...`);
             i++;
-
-            if (i > 100) {
-              throw new Error('Too many file name clashes, aborting!');
-            }
+            if (i > 100) throw new Error('Too many folder name clashes, aborting!');
           }
-          writeFileSync(`${outputDir}/${entry.name} (${i}).vtt`, vtt);
+          const newFolderName = `${folderName} (${i})`;
+          console.log('Writing file to disk...');
+          mkdirSync(`${outputDir}/${newFolderName}`);
+          writeFileSync(`${outputDir}/${newFolderName}/${fileName}`, vtt);
         } else {
-          writeFileSync(filePath, vtt);
+          // Write the file to the output directory
+          console.log('Writing file to disk...');
+          mkdirSync(`${outputDir}/${folderName}`);
+          writeFileSync(`${outputDir}/${folderName}/${fileName}`, vtt);
         }
       } catch (error) {
         console.log('Error writing file!', error);
         throw new Error('Error writing file');
       }
-
-      try {
-        writeFileSync(filePath, vtt);
-      } catch (error) {
-        throw new Error(`Could not write file to ${filePath}`);
-      }
-
-      // Write the file to the output directory
-      console.log('Writing file to disk...');
-      writeFileSync(`${outputDir}/${entry.name}.vtt`, vtt);
 
       console.log('File written to disk!');
       return { outputDir };
