@@ -9,11 +9,11 @@ import { Howl } from 'howler';
 import { Entry, Line, Transcription } from 'knex/types/tables';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import strings from '../../localization';
-import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { passToWhisper, selectTranscribingStatus } from '../whisper/whisperSlice';
-import EntryTable from './components/EntryTable';
-import { selectActiveLines, setLines } from './entrySlice';
+import strings from '../../../localization';
+import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
+import { passToWhisper, selectTranscribingStatus } from '../../whisper/whisperSlice';
+import EntryTable from './EntryTable';
+import { selectActiveLines, setLines } from '../entrySlice';
 
 // import {  Transcription, Line }  from
 

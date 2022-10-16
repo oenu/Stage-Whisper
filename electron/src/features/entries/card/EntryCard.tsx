@@ -22,7 +22,7 @@ function TranscriptionCard({ entry }: { entry: ReduxEntry }) {
   const transcribing = useAppSelector(selectTranscribingStatus);
 
   // Detect mobile view
-  const isMobile = useMediaQuery('(max-width: 600px)');
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const buttons =
     entry.transcriptions.length > 0 ? (

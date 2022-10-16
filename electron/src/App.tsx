@@ -17,7 +17,10 @@ import {
   ScrollArea,
   Text,
   Image,
-  useMantineTheme
+  useMantineTheme,
+  MantineTheme,
+  Switch,
+  Affix
 } from '@mantine/core';
 import {
   IconFileCheck,
@@ -26,14 +29,16 @@ import {
   IconInfoCircle,
   IconLanguage,
   IconMicrophone2,
-  IconSettings
+  IconMoonStars,
+  IconSettings,
+  IconSun
 } from '@tabler/icons';
 import { NotificationsProvider } from '@mantine/notifications';
-import StyleOverride from './StyleOverride';
+import Styling from './styling';
 
 // Logos / Icons
-import colorLogo from './assets/logos/color/Logo - Full ColourSVG.svg';
-import reverseColorLogo from './assets/logos/color/reversed/Logo - ReversedSVG.svg';
+// import colorLogo from './assets/logos/color/Logo - Full ColourSVG.svg';
+// import reverseColorLogo from './assets/logos/color/reversed/Logo - ReversedSVG.svg';
 // import monoLogo from './assets/logos/mono/Logo - MonoSVG.svg';
 // import reverseMonoLogo from './assets/logos/mono/reversed/Logo - Reversed MonoSVG.svg';
 
@@ -53,8 +58,9 @@ import {
   selectNumberOfEntries,
   setActiveEntry
 } from './features/entries/entrySlice';
-import { selectDarkMode, selectDisplayLanguage } from './features/settings/settingsSlice';
+import { selectDarkMode, selectDisplayLanguage, toggleDarkMode } from './features/settings/settingsSlice';
 import { selectTranscribingStatus } from './features/whisper/whisperSlice';
+import { useMediaQuery } from '@mantine/hooks';
 
 // Entries list - Shows all entries
 function EntryList({ darkMode }: { darkMode: boolean }) {
@@ -62,7 +68,6 @@ function EntryList({ darkMode }: { darkMode: boolean }) {
   const transcribing = useAppSelector(selectTranscribingStatus);
   const dispatch = useAppDispatch();
   const { entryUUID } = useParams();
-  const theme = useMantineTheme();
 
   return (
     <>
@@ -78,7 +83,7 @@ function EntryList({ darkMode }: { darkMode: boolean }) {
               transcribing.entry?.uuid === entry.uuid ? (
                 <Loader size={'sm'} />
               ) : entry.transcriptions[0] ? (
-                <IconFileCheck color={theme.colors.green[7]} />
+                <IconFileCheck />
               ) : (
                 <IconFileDescription />
               )
@@ -108,6 +113,8 @@ function App() {
 
   // Theming
   const theme = useMantineTheme();
+
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Monitor the current language and update when it changes
   strings.setLanguage(displayLanguage || 'en');
@@ -139,15 +146,7 @@ function App() {
           to: '#F6853A',
           deg: 45
         },
-        primaryColor: 'brand',
-        primaryShade: {
-          // light: 4,
-          // dark: 5
-        },
         colorScheme: darkMode ? 'dark' : 'light',
-
-        fontFamily: 'Asap, sans-serif',
-
         components: {
           Button: {
             defaultProps: {
@@ -158,35 +157,23 @@ function App() {
             defaultProps: {}
           }
         },
-
-        // globalStyles: (theme) => ({
-        //   // '.mantine-NavLink-root > [data-active]': {
-        //   // '&:hover': {
-        //   // backgroundColor: 'red'
-        //   // }
-        //   // }
-
-        // })
-
+        // fontFamily: 'Asap, sans-serif',
         //Heading One, bold 44px w/ 56px line space
         // Heading Two, bold at 32px / 36px
         // Heading Three, bold at 24px / 28px
         // Paragraph type, 17px / 22px
         // Small type, 14px / 18px
         //  Tiny type, all caps at 9px / 9px
-
         headings: {
-          fontFamily: 'Asap, sans-serif',
+          // fontFamily: 'Asap, sans-serif',
           h1: { fontSize: 44, lineHeight: 56, fontWeight: 700 },
           h2: { fontSize: 32, lineHeight: 36, fontWeight: 700 },
           h3: { fontSize: 24, lineHeight: 28, fontWeight: 700 },
           h4: { fontSize: 17, lineHeight: 22, fontWeight: 700 }
         },
-
         activeStyles: {
           transform: 'scale(0.95)'
         },
-
         colors: {
           brand: [
             // '#FDDBCC',
@@ -201,18 +188,7 @@ function App() {
             '#EA520B',
             '#D94C0A',
             '#CA4709'
-            // '#BC4209'
-
-            // '#ffebdf', // 1
-            // '#ffcbb2', // 2
-            // '#fba983', // 3
-            // '#f88853', // 4
-            // '#f56624', // 5
-            // '#db4d0a', // 6 -- Default For Dark Mode
-            // '#ac3b06', // 7 -- Default for light mode
-            // '#7b2a04', // 8
-            // '#4b1800', // 9
-            // '#1f0600' // 10
+            // '#BC4209' // '#ffebdf', // 1 // '#ffcbb2', // 2 // '#fba983', // 3 // '#f88853', // 4 // '#f56624', // 5 // '#db4d0a', // 6 -- Default For Dark Mode // '#ac3b06', // 7 -- Default for light mode // '#7b2a04', // 8 // '#4b1800', // 9 // '#1f0600' // 10
           ],
           brandDarkGrey: [
             '#5A5A5A', // 1
@@ -238,12 +214,13 @@ function App() {
             '#6E6E6E', // 9
             '#636363' // 10
           ]
-        }
+        },
+        primaryColor: 'brand'
       }}
       withGlobalStyles
       withNormalizeCSS
     >
-      <StyleOverride />
+      <Styling />
       <NotificationsProvider>
         <AppShell
           navbarOffsetBreakpoint="sm"
@@ -254,6 +231,9 @@ function App() {
               <Navbar.Section m={0}>
                 <NavLink
                   variant={darkMode ? 'filled' : 'filled'}
+                  onClick={() => {
+                    dispatch(setBurgerOpen(false));
+                  }}
                   label={<Text>{strings.dashboard?.title}</Text>}
                   icon={<IconHome size={18} />}
                   active={location.pathname === '/'}
@@ -263,6 +243,9 @@ function App() {
                 <NavLink
                   label={<Text>{strings.input?.title}</Text>}
                   variant={darkMode ? 'filled' : 'filled'}
+                  onClick={() => {
+                    dispatch(setBurgerOpen(false));
+                  }}
                   icon={<IconLanguage size={18} />}
                   active={location.pathname === '/transcribe'}
                   component={Link}
@@ -271,6 +254,9 @@ function App() {
                 <NavLink
                   label={<Text>{strings.interview?.title} </Text>}
                   variant={darkMode ? 'filled' : 'filled'}
+                  onClick={() => {
+                    dispatch(setBurgerOpen(false));
+                  }}
                   component={Link}
                   disabled
                   to="/interview"
@@ -283,7 +269,10 @@ function App() {
                   component={Link}
                   to="/entries"
                   icon={<IconFileDescription size={18} />}
-                  onClick={() => dispatch(setActiveEntry(null))}
+                  onClick={() => {
+                    dispatch(setActiveEntry(null));
+                    dispatch(setBurgerOpen(false));
+                  }}
                   disabled={numberOfEntries === 0}
                   active={location.pathname === '/entries' && activeEntry === null}
                 />
@@ -298,6 +287,9 @@ function App() {
                 <NavLink
                   label={<Text>{strings.settings?.title}</Text>}
                   variant={darkMode ? 'filled' : 'filled'}
+                  onClick={() => {
+                    dispatch(setBurgerOpen(false));
+                  }}
                   component={Link}
                   to="/settings"
                   icon={<IconSettings size={18} />}
@@ -306,6 +298,9 @@ function App() {
                 <NavLink
                   label={<Text>{strings.about?.title}</Text>}
                   variant={darkMode ? 'filled' : 'filled'}
+                  onClick={() => {
+                    dispatch(setBurgerOpen(false));
+                  }}
                   component={Link}
                   to="/about"
                   icon={<IconInfoCircle size={18} />}
@@ -314,30 +309,31 @@ function App() {
               </Navbar.Section>
             </Navbar>
           }
-          header={
-            <Header height={70} p="md">
-              <Group style={{ display: 'flex', height: '100%' }} noWrap>
-                <MediaQuery largerThan="sm" styles={{ display: 'none' }}>
-                  <Burger
-                    opened={burgerOpen}
-                    onClick={() => dispatch(setBurgerOpen(!burgerOpen))}
-                    size="sm"
-                    color={theme.colors.gray[6]}
-                    mr="xl"
-                  />
-                </MediaQuery>
-
-                {/* <Title variant="gradient" weight={800} color={theme.fn.gradient()}> */}
-                {/* {strings.util.app_name} */}
-                {/* </Title> */}
-                <Image width={180} fit="contain" src={darkMode ? reverseColorLogo : colorLogo} />
-              </Group>
-            </Header>
-          }
         >
+          {isMobile && (
+            <Header height={70} p="md">
+              <Burger
+                opened={burgerOpen}
+                onClick={() => dispatch(setBurgerOpen(!burgerOpen))}
+                size="sm"
+                color={theme.colors.gray[6]}
+                mr="xl"
+              />
+            </Header>
+          )}
+
+          <Affix position={{ bottom: 20, right: 20 }}>
+            <Switch
+              color={theme.colorScheme === 'dark' ? 'gray' : 'dark'}
+              onLabel={<IconMoonStars size={18} color={'#F6763A'} />}
+              offLabel={<IconSun size={18} color={'#F56826'} />}
+              checked={darkMode}
+              onChange={() => {
+                dispatch(toggleDarkMode());
+              }}
+            />
+          </Affix>
           <Outlet />
-          {/* Debugging Component */}
-          <Debug />
         </AppShell>
       </NotificationsProvider>
     </MantineProvider>

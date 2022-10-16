@@ -40,7 +40,7 @@ function Input() {
   const { about } = useAppSelector(selectAbout);
   const useSimpleInput = useAppSelector(selectUseSimpleInput);
   const navigate = useNavigate();
-  const isMobile = useMediaQuery('(max-width: 600px)');
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Temporary state for created entry
   const [createdEntry, setCreatedEntry] = React.useState<Entry | null>(null);
