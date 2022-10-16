@@ -46,7 +46,7 @@ import Styling from './styling';
 import strings from './localization';
 
 // Debug
-import Debug from './debug/Debug';
+import Debug from './features/debug/Debug';
 
 // Redux
 import { useAppDispatch, useAppSelector } from './redux/hooks';
