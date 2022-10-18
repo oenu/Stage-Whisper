@@ -219,6 +219,11 @@ export default ipcMain.handle(
       });
     });
 
+    if (transcription.error) {
+      console.log('RunWhisper: Error running whisper script!', transcription.error);
+      throw new Error('Error running whisper script!');
+    }
+
     return {
       transcription,
       entry
