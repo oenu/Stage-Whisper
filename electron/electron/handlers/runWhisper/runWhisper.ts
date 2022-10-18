@@ -7,6 +7,7 @@ import { spawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { NodeCue, parseSync } from 'subtitle';
 import { v4 as uuidv4 } from 'uuid';
+import { getAudioDurationInSeconds } from 'get-audio-duration';
 
 // Types
 import { Entry, Line, Transcription } from 'knex/types/tables';
@@ -17,6 +18,125 @@ import { WhisperArgs } from '../../types/whisperTypes';
 export type RunWhisperResponse = {
   transcription: Transcription;
   entry: Entry;
+};
+
+export type parserResult = {
+  // System
+  fp16?: boolean; // Whether fp16 is supported on the CPU
+
+  // Language
+  detecting_language?: boolean; // Whether the model is currently detecting the language
+  language?: string; // Language detected by whisper
+  task?: string; // Whether the model is translating or transcribing
+
+  // Transcription
+  start?: number; // Start time of the current subtitle line (milliseconds)
+  end?: number; // End time of the current subtitle line (milliseconds)
+  progress?: number; // Progress of the current task
+  text?: string; // Text of the current subtitle line
+
+  // Estimates
+  time_remaining?: number; // Estimated time remaining for the current transcription
+  time_elapsed?: number; // Time elapsed for the current transcription
+  time_total?: number; // Estimated time to complete the entire transcription
+};
+
+export const whisperParser = (line: string, transcribedOn: number, audio_file_length?: number): parserResult | void => {
+  try {
+    // Check if the line contains "Detecting language using up to the first 30 seconds."
+    if (line.includes('Detecting language using up to the first 30 seconds.')) {
+      return { detecting_language: true };
+    }
+
+    // Check if the line contains "Detected language: "
+    if (line.includes('Detected language: ')) {
+      // If so, return the language
+
+      // Get the language from the line
+      const language = line.split('Detected language: ')[1];
+
+      // Check if language is english (this will have to change if whisper supports translating into other languages)
+      if (language === 'English') {
+        return {
+          language: 'English',
+          detecting_language: false,
+          progress: 1,
+          task: 'Transcribing'
+        };
+      } else {
+        return {
+          language: language,
+          detecting_language: false,
+          progress: 0,
+          task: 'Translating'
+        };
+      }
+    }
+
+    // Check if fp16 computation is enabled for this cpu
+    if (line.includes('FP16 is not supported on CPU')) {
+      return { fp16: false };
+    }
+
+    // Check if line contains a start and end time ([00:00.000 --> 00:06.140]  Example subtitle line)
+    if (line.includes(' --> ')) {
+      // Get the start and end time from the line
+      const times = line.split(' --> ');
+
+      // Get the start time in milliseconds
+      const startMins = times[0].split(':')[0].replace('[', '');
+      const startSeconds = times[0].split(':')[1].split('.')[0];
+      const startMilliseconds = times[0].split('.')[1].slice(0, 3);
+      const start = parseInt(startMins) * 60 * 1000 + parseInt(startSeconds) * 1000 + parseInt(startMilliseconds);
+
+      // Get the end time in milliseconds
+      const endMins = times[1].split(':')[0];
+      const endSeconds = times[1].split(':')[1].split('.')[0];
+      const endMilliseconds = times[1].split('.')[1].slice(0, 3);
+      const end = parseInt(endMins) * 60 * 1000 + parseInt(endSeconds) * 1000 + parseInt(endMilliseconds);
+
+      // Get the text from the line
+      const text = line.split(']  ')[1];
+
+      // Calculate the progress of the current task
+      if (audio_file_length) {
+        const progress = end / 1000 / audio_file_length;
+        const progressRounded = Math.round(progress * 100) / 100;
+
+        // Estimate the time remaining for the current task
+        const started = new Date(transcribedOn);
+        const now = new Date();
+
+        // Time elapsed for the current task
+        const timeElapsed = now.getTime() - started.getTime();
+        const timeElapsedSeconds = Math.round(timeElapsed / 1000);
+
+        // Total time for the current task
+        const timeTotal = timeElapsed / progress;
+        const timeTotalSeconds = Math.round(timeTotal / 1000);
+
+        // Time remaining for the current task
+        const timeRemaining = timeElapsed / progress - timeElapsed;
+        const timeRemainingSeconds = Math.round(timeRemaining / 1000);
+
+        return {
+          start,
+          end,
+          text,
+          progress: Math.min(progressRounded, 1),
+          time_remaining: Math.max(timeRemainingSeconds, 0),
+          time_elapsed: timeElapsedSeconds,
+          time_total: timeTotalSeconds
+        };
+      } else {
+        return { start, end, text };
+      }
+    }
+    return;
+  } catch (error) {
+    console.log('Error in parser: ', error); // Extra logging for debugging
+    return;
+  }
 };
 
 export default ipcMain.handle(
@@ -58,6 +178,18 @@ export default ipcMain.handle(
       // If no input path is specified, throw -- This should never happen
       throw new Error('No input path provided');
     }
+
+    // Check if the input file exists
+    try {
+      existsSync(inputPath);
+    } catch (error) {
+      throw new Error('Input file does not exist');
+    }
+
+    // Get the duration of the audio file
+    const audio_file_length = await getAudioDurationInSeconds(inputPath);
+    console.log('Audio file length: ', audio_file_length);
+
     const uuid = uuidv4(); // Generate UUID for the transcription
 
     const transcribedOn = new Date().getTime(); // Get the current date and time for when the transcription was started
@@ -85,6 +217,8 @@ export default ipcMain.handle(
     // If the device is defined, add the device flag
     if (device) inputArray.push('--device', device);
 
+    inputArray.push('--verbose', 'True'); // Add the verbose flag
+
     // Add the input path
     inputArray.push(inputPath);
 
@@ -92,17 +226,43 @@ export default ipcMain.handle(
 
     console.log('RunWhisper: Running model with args', inputArray);
 
+    // New Process env object to pass to the child process
+    const env = {
+      ...process.env,
+      PYTHONUNBUFFERED: '1'
+    };
+
     // Spawn the whisper script
-    const childProcess = spawn('whisper', inputArray, { stdio: 'inherit' });
+    const childProcess = spawn('whisper', inputArray, { stdio: 'pipe', env: env });
+
+    // ---------------------------------  Child Process Data Listener --------------------------------- //
+    childProcess.stdout?.addListener('data', (data) => {
+      // Get the data from the child process
+
+      // Convert the data to a string
+      const dataString = data.toString();
+
+      // Split the data into lines
+      const lines = dataString.split('\n' || '\r');
+
+      // Loop through the lines
+      lines.forEach((line: string) => {
+        if (typeof line === 'string') {
+          // Check if the line is a string
+          const parsed = whisperParser(line, transcribedOn, audio_file_length);
+          if (parsed) {
+            console.log(parsed);
+          }
+        }
+      });
+    });
+
+    // ---------------------------------  Child Process Error Listener  --------------------------------- //
+    childProcess.stderr?.addListener('data', (data) => {
+      console.log('Error from child: ', data.toString());
+    });
 
     const transcription = await new Promise<Transcription>((resolve, reject) => {
-      childProcess.on('data', (data: string) => {
-        console.log(`stdout: ${data}`);
-      });
-      childProcess.on('error', (error: Error) => {
-        console.log(`stderr: ${error.message}`);
-      });
-
       // ------------------  Listen for the child process to exit and generate a transcription.json file ------------------ //
       childProcess.on('close', async (code: number) => {
         console.log(`RunWhisper: Child process closed with code ${code}`);
@@ -200,7 +360,7 @@ export default ipcMain.handle(
               'RunWhisper: Mismatch between number of lines added to database and number of lines generated!'
             );
             console.log('RunWhisper: Error adding lines to database!', newLines);
-            throw new Error('Error adding lines to database!');
+            throw new Error('Mismatch between number of lines added to database and number of lines generated!');
           } else {
             console.log('RunWhisper: Lines added to database successfully!');
           }
