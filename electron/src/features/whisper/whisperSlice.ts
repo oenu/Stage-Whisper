@@ -71,7 +71,7 @@ export const whisperSlice = createSlice({
         message: `Transcribing audio ${action.meta.arg.entry.audio_name}`,
         disallowClose: true,
         autoClose: false,
-        color: 'blue',
+        color: 'orange',
         loading: true
       });
       // Set the entry to the current entry
@@ -96,6 +96,24 @@ export const whisperSlice = createSlice({
 
       // Set the status to succeeded
       state.status = 'succeeded';
+    });
+
+    builder.addCase(passToWhisper.rejected, (state) => {
+      updateNotification({
+        id: 'transcribing',
+        title: `Transcription failed!`,
+        message: `Transcription failed for ${state.entry?.audio_name}`,
+        disallowClose: false,
+        color: 'red',
+        loading: false,
+        autoClose: 3000
+      });
+      // Reset the entry
+      state.entry = undefined;
+
+      // Set the status to idle
+      // WARN: This might need to be changed to failed, right now its set to idle so that the user can try again
+      state.status = 'idle';
     });
   }
 });
