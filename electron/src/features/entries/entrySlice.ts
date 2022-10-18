@@ -6,8 +6,6 @@ import { RootState } from '../../redux/store';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { Entry, Line, Transcription } from 'knex/types/tables';
-import { RunWhisperResponse } from '../../../electron/handlers/runWhisper/runWhisper';
-import { WhisperArgs } from '../../../electron/types/whisperTypes';
 
 export interface ReduxEntry extends Entry {
   transcriptions: Transcription[];
@@ -25,7 +23,6 @@ export interface entryState {
   entries: ReduxEntry[];
   activeEntry: string | null;
   get_files_status: 'idle' | 'loading' | 'succeeded' | 'failed' | 'not_found';
-  trigger_whisper_status: 'idle' | 'loading' | 'succeeded' | 'failed';
   activeLines: Line[];
 }
 
@@ -34,7 +31,7 @@ const initialState: entryState = {
   activeEntry: null,
   // Thunk State for accessing local files via electron
   get_files_status: 'idle',
-  trigger_whisper_status: 'idle',
+
   activeLines: []
 };
 
@@ -71,25 +68,6 @@ export const fetchLineAsync = createAsyncThunk(
       return { line: lineResult };
     } else {
       throw new Error('Error loading line');
-    }
-  }
-);
-
-export const whisperTranscribe = createAsyncThunk(
-  'entries/whisperTranscribe',
-  async (entry: ReduxEntry): Promise<{ result?: RunWhisperResponse; error?: string }> => {
-    const args: WhisperArgs = {
-      inputPath: entry.audio_path
-    };
-
-    const result = await window.Main.runWhisper(args, entry);
-
-    console.log('whisperTranscribe result', result);
-
-    if (result) {
-      return { result };
-    } else {
-      throw { error: 'Error running whisper' };
     }
   }
 );
