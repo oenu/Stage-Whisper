@@ -1,3 +1,4 @@
+import * as readline from 'node:readline';
 // Electron
 import { app, ipcMain, IpcMainInvokeEvent } from 'electron';
 import { join } from 'path';
@@ -89,16 +90,32 @@ export default ipcMain.handle(
     inputArray.push(inputPath);
 
     // ---------------------------------  Run the whisper script --------------------------------- //
-
     console.log('RunWhisper: Running model with args', inputArray);
 
     // Spawn the whisper script
-    const childProcess = spawn('whisper', inputArray, { stdio: 'inherit' });
+    const childProcess = spawn('whisper', inputArray, {
+      detached: true
+    });
+
+    // Create a line reader to read the output of the whisper script
+    const lineReader = readline.createInterface({
+      input: childProcess.stdout,
+      output: childProcess.stdin,
+      terminal: false
+    });
+    lineReader.on('line', (line) => {
+      console.log('Readline', line);
+    });
 
     const transcription = await new Promise<Transcription>((resolve, reject) => {
       childProcess.on('data', (data: string) => {
         console.log(`stdout: ${data}`);
       });
+      childProcess.stdout.on('data', (data: Buffer) => {
+        console.log(`Got some data!`);
+        console.log(data.toString());
+      });
+
       childProcess.on('error', (error: Error) => {
         console.log(`stderr: ${error.message}`);
       });
