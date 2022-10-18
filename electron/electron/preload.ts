@@ -54,11 +54,14 @@ const api = {
   // Run the whisper model with given arguments
   runWhisper: async (args: WhisperArgs, entry: Entry): Promise<RunWhisperResponse> => {
     console.log('Preload: RunWhisper: args', args);
+    try {
+      const result = (await ipcRenderer.invoke(Channels.runWhisper, args, entry)) as RunWhisperResponse;
+      console.log(`Preload: Invoked RunWhisper, result: ${result}`);
 
-    const result = (await ipcRenderer.invoke(Channels.runWhisper, args, entry)) as RunWhisperResponse;
-    console.log(`Preload: Invoked RunWhisper, result: ${result}`);
-
-    return result;
+      return result;
+    } catch (error) {
+      throw new Error(`Preload: Error running whisper: ${error}`);
+    }
   },
 
   // Trigger an OS level directory picker
