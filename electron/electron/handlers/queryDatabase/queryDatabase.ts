@@ -216,12 +216,8 @@ ipcMain.handle(
   QUERY.UPDATE_ENTRY,
   async (_event: invoke, args: QueryArgs[QUERY.UPDATE_ENTRY]): QueryReturn[QUERY.UPDATE_ENTRY] => {
     const { entry } = args;
-    const updatedEntry = (await db('entries')
-      .where({ uuid: entry.uuid })
-      .update(entry)
-      .returning('*')
-      .first()) as Entry;
-    return updatedEntry;
+    const updatedEntry = (await db('entries').where({ uuid: entry.uuid }).update(entry).returning('*')) as Entry[];
+    return updatedEntry[0];
   }
 );
 
@@ -232,10 +228,9 @@ ipcMain.handle(
     const { line } = args;
 
     // Get the line from the database
-    const dbLine = (await db('lines')
-      .where({ transcription: line.transcription })
-      .where({ index: line.index })
-      .first()) as Line;
+    const dbLine = (
+      await db('lines').where({ transcription: line.transcription }).where({ index: line.index })
+    )[0] as Line;
 
     // Create a new line object with the updated values and a higher version number
     const updatedLine = {
@@ -307,9 +302,8 @@ ipcMain.handle(
     const updatedTranscription = (await db('transcriptions')
       .where({ uuid: transcription.uuid })
       .update(transcription)
-      .returning('*')
-      .first()) as Transcription;
-    return updatedTranscription;
+      .returning('*')) as Transcription[];
+    return updatedTranscription[0];
   }
 );
 
