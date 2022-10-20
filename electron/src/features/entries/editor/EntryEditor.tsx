@@ -1,6 +1,6 @@
 // Components
 
-import { Button, Loader, Stack, Title } from '@mantine/core';
+import { ActionIcon, Button, Divider, Group, Loader, Space, Stack, TextInput, Title } from '@mantine/core';
 
 // import { RichTextEditor } from '@mantine/rte';
 // Types
@@ -8,12 +8,14 @@ import { Button, Loader, Stack, Title } from '@mantine/core';
 import { Howl } from 'howler';
 import { Entry, Line, Transcription } from 'knex/types/tables';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import strings from '../../../localization';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { passToWhisper, selectTranscribingStatus } from '../../whisper/whisperSlice';
 import EntryTable from './EntryTable';
-import { selectActiveLines, setLines } from '../entrySlice';
+import { getLocalFiles, selectActiveLines, setLines } from '../entrySlice';
+import { IconCheck, IconEdit, IconTrash, IconX } from '@tabler/icons';
+import { showNotification } from '@mantine/notifications';
 
 // import {  Transcription, Line }  from
 
@@ -90,6 +92,8 @@ function EntryEditor() {
   const dispatch = useAppDispatch();
   // Params
 
+  const navigate = useNavigate();
+
   const { entryUUID } = useParams<{ entryUUID: string }>();
   const [entry, setEntry] = useState<Entry | null>(null);
   const [transcription, setTranscription] = useState<Transcription | null>(null);
@@ -98,6 +102,10 @@ function EntryEditor() {
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [audioPlayer, setAudioPlayer] = useState<Howl | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Entry Name Editing
+  const [editingEntryName, setEditingEntryName] = useState<boolean>(false);
+  const [entryName, setEntryName] = useState<string>('');
 
   useEffect(() => {
     setTranscription(null);
@@ -111,6 +119,7 @@ function EntryEditor() {
     if (entryUUID) {
       GetEntry({ entryUUID })
         .then((entry) => {
+          setEntryName(entry.name);
           setEntry(entry);
           // console.log('1: Entry Set');
           GetTranscription({ entryUUID: entry.uuid }).then((transcription) => {
@@ -157,6 +166,9 @@ function EntryEditor() {
           console.log(error);
           setLoading(false);
         });
+    } else {
+      console.log('No Entry UUID Found');
+      setEntryName('');
     }
   }, [entryUUID]);
 
@@ -173,7 +185,124 @@ function EntryEditor() {
     return (
       <>
         <Stack>
-          <Title order={3}>Transcription</Title>
+          <Group noWrap position="apart">
+            {editingEntryName ? (
+              <TextInput
+                value={entryName}
+                onChange={(e) => {
+                  setEntryName(e.target.value);
+                }}
+              />
+            ) : (
+              <Title order={3}>{entryName}</Title>
+            )}
+
+            <Group>
+              {editingEntryName ? (
+                <ActionIcon
+                  color="blue"
+                  onClick={() => {
+                    try {
+                      if (entryName) {
+                        const newEntry = {
+                          ...entry,
+                          name: entryName
+                        };
+                        setEditingEntryName(false);
+
+                        window.Main.UPDATE_ENTRY({ entry: newEntry })
+                          .then(() => {
+                            showNotification({
+                              title: 'Entry Updated',
+                              message: 'Entry name updated successfully',
+                              icon: <IconCheck />,
+                              autoClose: 3000,
+                              disallowClose: true
+                            });
+                          })
+                          .catch(() => {
+                            showNotification({
+                              title: 'Entry Update Failed',
+                              message: 'Entry name update failed',
+                              icon: <IconX />,
+                              autoClose: 3000,
+                              disallowClose: true
+                            });
+                          });
+                      } else {
+                        showNotification({
+                          title: 'Entry Update Failed',
+                          message: 'Entry name cannot be empty',
+                          icon: <IconX />,
+                          autoClose: 3000,
+                          disallowClose: true
+                        });
+                      }
+                    } catch (error) {
+                      console.log(error);
+                    }
+                  }}
+                  variant="outline"
+                >
+                  <IconCheck size={16} />
+                </ActionIcon>
+              ) : (
+                <ActionIcon
+                  color="blue"
+                  onClick={() => {
+                    // Edit this line
+                    setEditingEntryName(true);
+                  }}
+                  variant="outline"
+                >
+                  <IconEdit size={16} />
+                </ActionIcon>
+              )}
+
+              <ActionIcon
+                color="red"
+                disabled={
+                  entry && transcribingStatus.entry?.uuid === entry.uuid && transcribingStatus.status === 'loading'
+                }
+                onClick={async () => {
+                  try {
+                    const normalizedEntry = (await window.Main.GET_ENTRY({ entryUUID: entry.uuid })) as Entry;
+                    if (!normalizedEntry) throw new Error('Entry not found');
+                    await window.Main.deleteEntry(normalizedEntry)
+                      .then(() => {
+                        console.log('Deleted: Reloading local files');
+                        dispatch(getLocalFiles());
+                        navigate('/entries');
+                        showNotification({
+                          title: 'Entry Deleted',
+                          message: 'The entry was successfully deleted',
+                          autoClose: 3000,
+                          disallowClose: true,
+                          icon: <IconCheck size={16} />
+                        });
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        showNotification({
+                          title: 'Error Deleting Entry',
+                          message: 'There was an error deleting the entry',
+                          autoClose: 3000,
+                          disallowClose: true,
+                          icon: <IconX size={16} />
+                        });
+                      });
+                  } catch (e) {
+                    console.log('Error deleting entry', e);
+                    console.log(e);
+                  }
+                }}
+                variant="outline"
+              >
+                {/* HACK: Delete is disabled until a way to sync changes is complete */}
+                <IconTrash size={16} />
+              </ActionIcon>
+            </Group>
+          </Group>
           <EntryTable entry={entry} audioPlayer={audioPlayer} />
         </Stack>
       </>
