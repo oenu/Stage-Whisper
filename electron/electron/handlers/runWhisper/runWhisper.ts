@@ -1,3 +1,4 @@
+import { whisperLanguages } from './../../types/whisperTypes';
 // Electron
 import { app, ipcMain, IpcMainInvokeEvent } from 'electron';
 import { join } from 'path';
@@ -26,8 +27,8 @@ export type parserResult = {
 
   // Language
   detecting_language?: boolean; // Whether the model is currently detecting the language
-  language?: string; // Language detected by whisper
-  task?: string; // Whether the model is translating or transcribing
+  language?: keyof typeof whisperLanguages; // Language detected by whisper
+  task?: 'translate' | 'transcribe'; // Whether the model is translating or transcribing
 
   // Transcription
   start?: number; // Start time of the current subtitle line (milliseconds)
@@ -61,14 +62,30 @@ export const whisperParser = (line: string, transcribedOn: number, audio_file_le
           language: 'English',
           detecting_language: false,
           progress: 1,
-          task: 'Transcribing'
+          task: 'transcribe'
         };
+      } else if (language) {
+        // Check if the language is supported
+        if (Object.keys(whisperLanguages).includes(language)) {
+          // Detected a supported language
+          return {
+            language: language as keyof typeof whisperLanguages,
+            detecting_language: false,
+            progress: 0,
+            task: 'translate'
+          };
+        } else {
+          // Detected an unsupported language
+          return {
+            detecting_language: false,
+            progress: 0
+          };
+        }
       } else {
+        // No language detected
         return {
-          language: language,
           detecting_language: false,
-          progress: 0,
-          task: 'Translating'
+          progress: 0
         };
       }
     }
@@ -142,8 +159,9 @@ export const whisperParser = (line: string, transcribedOn: number, audio_file_le
 export default ipcMain.handle(
   Channels.runWhisper,
   async (_event: IpcMainInvokeEvent, args: WhisperArgs, entry: Entry): Promise<RunWhisperResponse> => {
-    const { inputPath, language } = args;
-    let { model, device, task } = args;
+    const { inputPath } = args;
+    let { model, device, task, language } = args;
+    let progress = 0;
 
     // Paths
     const rootPath = app.getPath('userData'); // Path to the top level of the data folder
@@ -236,6 +254,7 @@ export default ipcMain.handle(
     const childProcess = spawn('whisper', inputArray, { stdio: 'pipe', env: env });
 
     // ---------------------------------  Child Process Data Listener --------------------------------- //
+
     childProcess.stdout?.addListener('data', (data) => {
       // Get the data from the child process
 
@@ -251,7 +270,23 @@ export default ipcMain.handle(
           // Check if the line is a string
           const parsed = whisperParser(line, transcribedOn, audio_file_length);
           if (parsed) {
-            console.log(parsed);
+            // If the script detected a language, update the language variable
+            if (parsed.language) {
+              console.log(`Detected language: ${parsed.language}, will add to transcription record`);
+              language = parsed.language;
+            }
+
+            // If the script detected a task, update the task variable
+            if (parsed.task) {
+              console.log(`Detected task: ${parsed.task}, will add to transcription record`);
+              task = parsed.task;
+            }
+
+            // If the script detected a progress, update the progress variable
+            if (parsed.progress) {
+              progress = parsed.progress;
+              console.log(`Detected progress: ${progress}`);
+            }
           }
         }
       });
@@ -314,10 +349,10 @@ export default ipcMain.handle(
             model,
             language,
             status: transcriptionStatus.COMPLETE,
-            progress: 100,
+            progress: 1,
             completedOn: new Date().getTime(),
             error: undefined,
-            translated: task === 'translate' // TODO: Detect if the transcription is translated or not, doesn't work for auto detect
+            translated: task === 'translate'
           };
 
           // Add the transcription to the database
@@ -369,6 +404,8 @@ export default ipcMain.handle(
           // Not deleting the VTT file for now, as it's useful for debugging
 
           // ------------------  Resolve the promise ------------------ //
+          console.debug('RunWhisper: Resolving promise...');
+          console.debug(transcription);
           resolve(transcription);
         } else {
           // ------------------  Handle errors ------------------ //
