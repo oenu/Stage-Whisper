@@ -1,6 +1,7 @@
 // Create an indexed array of languages and their codes
 export enum whisperLanguages {
   // TODO: Create a separate list of interface languages, right now app is limited to only use languages that are accepted by the whisper model
+  Unknown = 'unknown',
   Afrikaans = 'af',
   Albanian = 'sq',
   Amharic = 'am',
@@ -110,8 +111,7 @@ export enum whisperLanguages {
   Vietnamese = 'vi',
   Welsh = 'cy',
   Yiddish = 'yi',
-  Yoruba = 'yo',
-  unknown = 'unknown'
+  Yoruba = 'yo'
 }
 
 export const whisperCodes = Object.values(whisperLanguages);

@@ -182,7 +182,7 @@ export default ipcMain.handle(
 
     if (!device) device = 'cpu'; // If no device is specified, use the cpu
 
-    if (language !== 'unknown') {
+    if (language !== 'Unknown') {
       // If the language is unknown, let whisper decide which task to use
       if (!task) {
         // If no task is specified, check if the audio file's language is English
@@ -227,7 +227,7 @@ export default ipcMain.handle(
     else if (task === 'translate') inputArray.push('--task', 'translate');
 
     // If the language is defined, add the language flag
-    if (language && language !== 'unknown') inputArray.push('--language', language);
+    if (language && language !== 'Unknown') inputArray.push('--language', language);
 
     // If the model is defined, add the model flag
     if (model) inputArray.push('--model', model);
