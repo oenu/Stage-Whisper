@@ -16,6 +16,7 @@ import EntryTable from './EntryTable';
 import { getLocalFiles, selectActiveLines, setLines } from '../entrySlice';
 import { IconCheck, IconEdit, IconTrash, IconX } from '@tabler/icons';
 import { showNotification } from '@mantine/notifications';
+import TranscriptionModal from '../../transcriptionModal/TranscriptionModal';
 
 // import {  Transcription, Line }  from
 
@@ -184,6 +185,14 @@ function EntryEditor() {
   if (entry && transcription && lines && audioURL && audioPlayer) {
     return (
       <>
+        <>DEVELOPMENT! REMOVE MODAL ALWAYS OPEN BEFORE SHIP!</>
+        <TranscriptionModal
+          entry={entry}
+          open={true}
+          onClose={() => {
+            console.log('DEV: attempted close');
+          }}
+        />
         <Stack>
           <Group noWrap position="apart">
             {editingEntryName ? (
